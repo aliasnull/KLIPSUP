@@ -1,0 +1,3234 @@
+PROJECT KLIPSUP
+
+Ultimate Professional Android Video Editor: Master Engineering Specification
+
+1. ROLE AND MISSION
+
+Act as a complete multidisciplinary engineering team consisting of:
+
+- Senior Android Application Architect
+- Professional Video Editing Software Engineer
+- C++ Media Engine Developer
+- FFmpeg and MediaCodec Specialist
+- OpenGL ES/Vulkan GPU Engineer
+- Real-Time Rendering Engineer
+- Professional Color Science Engineer
+- Motion Graphics and Compositing Engineer
+- Audio DSP Engineer
+- AI Integration Engineer
+- Backend and API Integration Engineer
+- UI/UX Designer specializing in professional creative software
+- Android Performance Optimization Engineer
+- QA Automation Engineer
+
+Your mission is to design, architect, implement, test, and deliver a professional-grade Android video editing application called KLIPSUP.
+
+KLIPSUP must aim to bring desktop-class video editing capabilities to Android, inspired by the capabilities and workflows found in professional and advanced creative applications such as:
+
+- Adobe Premiere Pro
+- Adobe After Effects
+- DaVinci Resolve
+- CapCut
+- KineMaster
+- PowerDirector
+- Alight Motion
+- Node Video
+- Kuaishou's KwaiCut
+- Other professional non-linear video editors and motion graphics applications
+
+These applications are references for functionality and workflow expectations only. Do not copy proprietary source code, protected assets, branding, or proprietary interfaces.
+
+Develop an original product with its own identity, architecture, interface, and workflow.
+
+The goal is not to build a basic mobile video editor.
+
+The goal is to build a powerful, modular, extensible, multitrack, AI-enabled video editing environment that offers as much desktop-class functionality as Android hardware and software reasonably permit.
+
+Every implemented feature must be functional, tested, and integrated into the editing pipeline.
+
+Do not produce a collection of nonfunctional buttons, placeholder screens, mock processing results, or fake progress indicators.
+
+---
+
+2. APPLICATION IDENTITY
+
+Application Name: KLIPSUP
+
+Package Name / Application ID: alias.klips.net
+
+Platform: Android
+
+Primary Language: Kotlin
+
+Native Engine Language: C++ where appropriate
+
+Build System: Gradle with Android Gradle Plugin and a compatible Kotlin toolchain
+
+Native Build System: CMake and Android NDK
+
+Application Architecture: Modular, maintainable, production-oriented
+
+Minimum Android Version: Select after evaluating the minimum requirements of the chosen media libraries and GPU pipeline. Prefer broad device compatibility without sacrificing essential functionality.
+
+Target SDK: Use the latest stable Android SDK supported by the selected build toolchain at implementation time.
+
+Architecture Requirements:
+
+- Clean Architecture principles where appropriate
+- MVVM or an equivalent predictable UI architecture
+- Kotlin Coroutines and Flow for asynchronous operations
+- Dependency injection where it improves modularity
+- Repository pattern for project and media management
+- Native C++ modules exposed through JNI where beneficial
+- Versioned project file format
+- Explicit media processing and rendering abstractions
+- Centralized error handling
+- Structured logging and diagnostics
+- Automated testing infrastructure
+
+Do not overengineer simple features, but do not create a monolithic application.
+
+All major systems must have clear interfaces and independently testable responsibilities.
+
+---
+
+3. NON-NEGOTIABLE DEVELOPMENT RULES
+
+Follow these rules throughout development.
+
+1. The application must be a real Android application, not a website wrapped inside a WebView.
+2. Use native Android UI for the core editing interface.
+3. Use C++ for performance-critical components where it provides a meaningful benefit.
+4. Use hardware acceleration when available and appropriate.
+5. Preserve project editability after closing and reopening the application.
+6. Editing operations must be nondestructive wherever practical.
+7. All timeline operations must support undo and redo.
+8. All media processing must report genuine progress and errors.
+9. All export operations must produce verifiable output files.
+10. Every user-facing control must either work or be explicitly disabled with an understandable explanation.
+11. Never simulate an AI result when the configured provider fails.
+12. Never hardcode API keys.
+13. Never upload user media to an AI provider without clear user consent.
+14. Never silently overwrite project files or exported videos.
+15. Never silently reduce export quality without informing the user.
+16. Handle missing media, insufficient storage, unsupported codecs, interrupted rendering, and application restarts.
+17. Use real tests instead of claiming that a feature works merely because the code compiles.
+18. Keep all dependencies compatible with the actual Android build environment.
+19. Verify native library support for ARM64 and other architectures that are explicitly targeted.
+20. Do not claim that a feature is complete until its implementation, integration, and tests support that claim.
+
+Do not try to implement the entire application in one enormous source file.
+
+Create a maintainable project structure with clear modules, interfaces, documentation, and automated tests.
+
+---
+
+4. REQUIRED APPLICATION ARCHITECTURE
+
+Design KLIPSUP around the following major systems.
+
+4.1 Application Shell
+
+Implement:
+
+- Application startup and initialization
+- Home dashboard
+- Project browser
+- Media library
+- Editing workspace
+- AI workspace
+- Export and render manager
+- Application settings
+- User preferences
+- Theme management
+- Storage management
+- Diagnostics
+- Plugin or extension infrastructure where appropriate
+- Crash recovery
+
+The application shell must remain responsive while background operations execute.
+
+4.2 Project Management Engine
+
+Create a robust project management system supporting:
+
+- New project creation
+- Project templates
+- Project duplication
+- Project renaming
+- Project deletion with confirmation
+- Project import and export
+- Autosave
+- Manual save
+- Recovery after crashes
+- Recovery after forced termination
+- Project versioning
+- Project migration between application versions
+- Missing-media detection
+- Media relinking
+- Project backups
+- Duplicate project detection
+- Project thumbnails
+- Project metadata
+- Last-edited timestamps
+- Project search and sorting
+- Recent projects
+- Favorite projects
+- Archive projects
+- Project storage usage
+- Proxy-media associations
+- Export history
+
+Create a versioned, documented project format.
+
+Use a structured representation such as JSON for readable metadata, combined with a reliable media asset organization strategy.
+
+A project must never depend on temporary cache files for its permanent editability.
+
+Do not embed original media inside project metadata.
+
+Support project portability by preserving media references, relative paths where practical, and optional asset collection.
+
+---
+
+5. PROFESSIONAL PROJECT SETTINGS
+
+Allow users to configure the following before editing.
+
+5.1 Resolution
+
+Support common project resolutions:
+
+- 426 × 240
+- 640 × 360
+- 854 × 480
+- 1280 × 720
+- 1920 × 1080
+- 2560 × 1440
+- 3840 × 2160
+- 4096 × 2160 where supported
+- Custom width and height
+- Vertical video dimensions
+- Square video dimensions
+- Custom aspect ratios
+
+Validate unsupported or impractical combinations.
+
+5.2 Aspect Ratios
+
+Provide presets for:
+
+- 16:9
+- 9:16
+- 1:1
+- 4:3
+- 3:4
+- 4:5
+- 2.39:1
+- Custom ratios
+
+Allow changing the project aspect ratio after editing begins.
+
+Offer intelligent reframing controls without destructively cropping the original media.
+
+5.3 Frame Rates
+
+Support project timebases including:
+
+- 23.976 fps
+- 24 fps
+- 25 fps
+- 29.97 fps
+- 30 fps
+- 50 fps
+- 59.94 fps
+- 60 fps
+
+Support other rates where the selected rendering pipeline can process them correctly.
+
+Use rational frame-rate representations where necessary.
+
+Avoid cumulative timing drift.
+
+5.4 Color and Audio Settings
+
+Support:
+
+- SDR projects
+- HDR-aware project workflows where the device and rendering pipeline support them
+- Color-space selection
+- Audio sample-rate settings
+- Audio channel configuration
+- Preview quality settings
+- Proxy preferences
+- Performance profiles
+
+Clearly distinguish a project's working color space from the exported file's color space.
+
+---
+
+6. PROFESSIONAL MULTITRACK TIMELINE
+
+The timeline is the heart of KLIPSUP.
+
+Implement a genuine non-linear editing timeline with independent tracks and clips.
+
+Do not substitute a basic sequence of video thumbnails for a professional timeline.
+
+6.1 Timeline Structure
+
+Support:
+
+- Multiple video tracks
+- Multiple overlay tracks
+- Multiple audio tracks
+- Text and subtitle tracks
+- Graphics tracks
+- Adjustment layers
+- Nested sequences
+- Compound clips
+- Grouped clips
+- Track folders where appropriate
+- Track naming
+- Track colors
+- Track reordering
+- Track locking
+- Track visibility
+- Track muting
+- Track soloing for audio
+- Track enable and disable
+- Track duplication
+- Track deletion
+- Track height adjustment
+- Track expansion and collapse
+
+The number of tracks should be limited by available resources rather than an unnecessarily low arbitrary application limit.
+
+Implement appropriate safeguards against excessive memory usage.
+
+6.2 Timeline Navigation
+
+Implement:
+
+- Horizontal scrolling
+- Vertical scrolling
+- Pinch-to-zoom
+- Zoom in and out
+- Zoom to fit
+- Zoom to selection
+- Playhead navigation
+- Frame-by-frame navigation
+- Jump to beginning
+- Jump to end
+- Previous edit
+- Next edit
+- Timeline ruler
+- Timecode display
+- Frame-accurate seeking
+- Snapping
+- Snapping preferences
+- Markers
+- Range selection
+- Work-area selection
+- In and out points
+- Timeline minimap or overview where useful
+
+6.3 Editing Operations
+
+Implement:
+
+- Select
+- Move
+- Trim
+- Split
+- Blade cut
+- Ripple trim
+- Ripple delete
+- Roll edit
+- Slip edit
+- Slide edit
+- Lift
+- Extract
+- Insert edit
+- Overwrite edit
+- Duplicate
+- Copy
+- Paste
+- Paste attributes
+- Replace clip
+- Replace media
+- Group
+- Ungroup
+- Link
+- Unlink
+- Synchronize audio and video
+- Align clips
+- Distribute clips
+- Snap to playhead
+- Snap to markers
+- Snap to clip boundaries
+- Freeze frame
+- Hold frame
+- Reverse playback
+- Loop selected clips
+
+Provide an editing toolbar with clear tools and keyboard shortcuts where a physical keyboard is available.
+
+6.4 Timeline Editing Modes
+
+Support:
+
+- Standard selection mode
+- Blade mode
+- Trim mode
+- Ripple mode
+- Slip and slide modes
+- Multi-select mode
+- Range selection
+- Track targeting
+- Source patching where practical
+- Insert and overwrite editing
+
+6.5 Clip Handles and Transitions
+
+Support:
+
+- Transition handles
+- Overlapping clips
+- Crossfade transitions
+- Video transitions
+- Audio crossfades
+- Transition duration adjustment
+- Transition easing
+- Transition presets
+- Transition keyframes
+- Transition preview
+- Transition replacement
+
+When media handles are insufficient for a transition, clearly communicate the limitation and provide appropriate alternatives.
+
+---
+
+7. VIDEO IMPORT AND MEDIA LIBRARY
+
+Implement a professional media browser.
+
+Support importing media through Android's Storage Access Framework, MediaStore, and other appropriate Android APIs.
+
+Support:
+
+- MP4
+- MOV
+- MKV
+- WebM
+- AVI
+- M4V
+- 3GP
+- Other formats supported by the installed media backends
+
+Format support must depend on actual demuxer, decoder, and encoder availability.
+
+Do not assume that a file extension guarantees codec compatibility.
+
+7.1 Media Types
+
+Support:
+
+- Video
+- Audio
+- Images
+- Animated images
+- GIF
+- PNG
+- JPEG
+- WebP
+- TIFF where supported
+- SVG through a secure vector rendering implementation
+- Transparent graphics
+- Image sequences
+- Subtitle files
+- LUT files
+- Fonts
+- Project files
+- Supported motion graphics assets
+
+7.2 Media Browser Features
+
+Implement:
+
+- Grid and list views
+- Thumbnail generation
+- Waveform thumbnails
+- Video duration
+- Resolution information
+- Frame rate information
+- Codec information
+- Audio channel information
+- File size
+- Sorting
+- Search
+- Filtering
+- Favorites
+- Recent imports
+- Folder browsing
+- Metadata inspection
+- Duplicate detection
+- Import progress
+- Import cancellation
+- Unsupported media warnings
+- Missing-file detection
+
+7.3 Media Organization
+
+Provide:
+
+- Media bins
+- Custom folders
+- Smart collections
+- Tags
+- Favorites
+- Search collections
+- Usage tracking
+- Used and unused media indicators
+- Relinking
+- Proxy associations
+- Source metadata panels
+
+Allow importing very large files without loading their complete contents into memory.
+
+---
+
+8. VIDEO EDITING TOOLS
+
+Implement a complete set of practical video editing tools.
+
+8.1 Basic Editing
+
+- Trim
+- Split
+- Crop
+- Rotate
+- Flip horizontally
+- Flip vertically
+- Resize
+- Scale
+- Position
+- Anchor point
+- Fit
+- Fill
+- Stretch with warnings where appropriate
+- Opacity
+- Blend modes
+- Clip duration adjustment
+- Frame hold
+- Freeze frame
+- Reverse
+- Duplicate
+- Replace
+- Stabilization
+- Perspective correction where practical
+- Lens distortion correction where practical
+
+8.2 Speed Controls
+
+Implement:
+
+- Normal speed
+- Slow motion
+- Fast motion
+- Reverse speed
+- Speed presets
+- Custom speed
+- Variable-speed curves
+- Speed ramping
+- Time remapping
+- Freeze sections
+- Hold frames
+- Smooth speed transitions
+- Optical-flow interpolation where supported
+- Frame blending
+- Nearest-frame interpolation
+- Audio pitch preservation
+- Audio time stretching
+- Slow-motion preview
+- Speed-curve keyframes
+
+Do not present frame duplication as optical flow.
+
+Optical-flow processing must use a genuine motion-estimation and frame-interpolation pipeline.
+
+Provide fallback modes for devices that cannot handle advanced interpolation efficiently.
+
+---
+
+9. KEYFRAME ANIMATION ENGINE
+
+Build a reusable animation system shared across video, images, text, graphics, effects, and audio parameters where appropriate.
+
+9.1 Keyframeable Properties
+
+Support keyframes for:
+
+- Position X
+- Position Y
+- Position Z in supported 3D contexts
+- Scale X
+- Scale Y
+- Rotation X
+- Rotation Y
+- Rotation Z
+- Anchor point
+- Opacity
+- Crop boundaries
+- Corner positions
+- Mask properties
+- Blur
+- Brightness
+- Contrast
+- Saturation
+- Exposure
+- Temperature
+- Tint
+- Hue
+- Shadow parameters
+- Glow
+- Effect intensity
+- Blend modes where meaningful
+- Audio volume
+- Audio pan
+- Audio pitch
+- Playback speed
+- Text properties
+- Tracking
+- Transform parameters
+- Camera parameters in 3D scenes
+- Particle parameters
+
+The architecture must allow additional animatable parameters without redesigning the entire timeline.
+
+9.2 Interpolation
+
+Support:
+
+- Linear
+- Ease in
+- Ease out
+- Ease in and out
+- Step
+- Bezier
+- Cubic Bezier
+- Custom easing curves
+- Hold interpolation
+- Automatic interpolation where appropriate
+
+9.3 Graph Editor
+
+Implement a dedicated graph editor supporting:
+
+- Value curves
+- Speed curves
+- Position curves
+- Bezier handles
+- Tangent editing
+- Curve zooming
+- Curve panning
+- Multiple selected curves
+- Keyframe selection
+- Keyframe copying
+- Keyframe pasting
+- Keyframe deletion
+- Curve presets
+- Temporal interpolation
+- Spatial interpolation where applicable
+
+Keyframes must remain frame-accurate and deterministic during export.
+
+---
+
+10. TRANSITIONS AND VISUAL EFFECTS
+
+Build an extensible effect-processing system.
+
+Every effect should have a consistent interface for parameters, keyframes, rendering, serialization, and export.
+
+10.1 Basic Effects
+
+Implement:
+
+- Gaussian blur
+- Box blur
+- Motion blur
+- Directional blur
+- Radial blur
+- Zoom blur
+- Sharpen
+- Unsharp mask
+- Vignette
+- Grain
+- Noise
+- Pixelation
+- Mosaic
+- Glow
+- Bloom
+- Chromatic aberration
+- Lens distortion
+- Fisheye
+- Color inversion
+- Grayscale
+- Sepia
+- Posterization
+- Threshold
+- Edge detection
+- Emboss
+- Sketch
+- Cartoon-style processing
+- Film grain
+- Film burn
+- Light leaks
+- Glitch
+- RGB split
+- Scanlines
+- VHS-style effects
+- Shake
+- Flash
+- Flicker
+- Distortion
+- Wave distortion
+- Ripple
+- Displacement mapping
+- Lens flare where practical
+- Spotlight
+- Shadow
+- Outline
+- Glow outline
+
+10.2 Professional Effects
+
+Add extensible implementations for:
+
+- Luma key
+- Chroma key
+- Green-screen removal
+- Blue-screen removal
+- Spill suppression
+- Color isolation
+- Selective color
+- Background replacement
+- Mask-based effects
+- Tracking-based effects
+- Depth-based effects where depth information is available
+- Optical-flow-driven effects
+- Temporal denoising where supported
+- Film emulation
+- Highlight bloom
+- Halation
+- Lens breathing simulation
+- Anamorphic flare simulation where practical
+
+10.3 Effect Stack
+
+Each clip should support:
+
+- Multiple effects
+- Effect reordering
+- Effect enabling and disabling
+- Effect bypass
+- Effect duplication
+- Effect removal
+- Effect presets
+- Parameter animation
+- Effect masking
+- Effect intensity
+- Before-and-after preview
+- Effect-stack copy and paste
+- Render caching
+- Per-effect performance diagnostics
+
+Provide a search-enabled effect library.
+
+Do not render all effects at full quality during every timeline interaction. Use caching, proxy quality, and adaptive preview resolution.
+
+---
+
+11. PROFESSIONAL COLOR CORRECTION AND COLOR GRADING
+
+Build a dedicated Color workspace.
+
+The implementation must go beyond basic brightness, contrast, and saturation sliders.
+
+11.1 Primary Correction
+
+Support:
+
+- Exposure
+- Brightness
+- Contrast
+- Highlights
+- Shadows
+- Whites
+- Blacks
+- Temperature
+- Tint
+- Saturation
+- Vibrance
+- Gamma
+- Lift
+- Gamma and gain controls
+- Offset
+- Pivot
+- Midtone detail
+- Hue
+- Luma
+- RGB channel adjustments
+- Color balance
+- White balance
+- Auto white balance where practical
+
+11.2 Color Wheels
+
+Provide:
+
+- Lift wheel
+- Gamma wheel
+- Gain wheel
+- Offset wheel
+- Shadow color wheel
+- Midtone color wheel
+- Highlight color wheel
+- Global color wheel
+
+Include numerical controls for users who require precise adjustments.
+
+11.3 Curves
+
+Implement:
+
+- Master RGB curve
+- Red curve
+- Green curve
+- Blue curve
+- Hue versus hue
+- Hue versus saturation
+- Hue versus luminance
+- Luminance versus saturation
+- Saturation versus saturation
+- Custom control points
+- Curve presets
+
+11.4 HSL and Selective Correction
+
+Support:
+
+- Hue selection
+- Saturation selection
+- Luminance selection
+- HSL qualifiers
+- Color-range masks
+- Skin-tone isolation
+- Selective adjustments
+- Masked correction
+- Secondary color correction
+
+11.5 LUT Support
+
+Support:
+
+- .cube LUT files
+- 1D LUTs where supported
+- 3D LUTs
+- LUT import
+- LUT preview
+- LUT intensity
+- LUT stacking where mathematically appropriate
+- LUT management
+- Favorites
+- LUT application to clips and adjustment layers
+
+Validate LUT files and reject malformed or unsafe inputs.
+
+11.6 Scopes
+
+Provide professional video scopes:
+
+- Waveform monitor
+- RGB parade
+- Histogram
+- Vectorscope
+- Luma waveform
+- RGB histogram
+- False-color exposure view
+- Zebra exposure warnings where practical
+
+Scopes must be calculated from the actual preview or render signal.
+
+Do not substitute decorative graphs for real measurements.
+
+11.7 Color Management
+
+Design an explicit color-management pipeline.
+
+Consider:
+
+- Rec. 709
+- Rec. 2020
+- sRGB
+- Display P3
+- Linear-light processing
+- Gamma-aware processing
+- Transfer-function conversion
+- HDR10-compatible workflows where supported
+- HLG workflows where supported
+- Bit-depth conversion
+- Dithering
+- Tone mapping
+- Output color metadata
+- Limited-range and full-range video handling
+
+Use accurate transfer functions and appropriate color conversion.
+
+Do not claim professional HDR support unless decoding, preview, processing, and export are genuinely compatible.
+
+---
+
+12. MASKING, ROTOSCOPING, AND TRACKING
+
+Implement an advanced masking workspace.
+
+12.1 Mask Types
+
+Support:
+
+- Rectangle masks
+- Ellipse masks
+- Polygon masks
+- Freehand masks
+- Bezier masks
+- Pen-tool masks
+- Multiple masks per clip
+- Add and subtract mask operations
+- Intersect masks
+- Inverted masks
+- Feathering
+- Expansion
+- Contraction
+- Mask opacity
+- Mask blur
+- Animated mask paths
+
+12.2 Tracking
+
+Implement:
+
+- Point tracking
+- Planar tracking where practical
+- Position tracking
+- Scale tracking
+- Rotation tracking
+- Corner tracking where supported
+- Track forward
+- Track backward
+- Track selected range
+- Tracking confidence
+- Manual correction
+- Tracking keyframe editing
+- Track export into transform properties
+
+12.3 Rotoscoping
+
+Provide:
+
+- Manual rotoscoping tools
+- Animated masks
+- Frame-by-frame corrections
+- Edge feathering
+- Edge refinement
+- Subject isolation
+- Mask tracking
+- Optional AI-assisted segmentation through supported providers or on-device models
+
+AI-assisted masks must remain editable by the user.
+
+Clearly indicate uncertain segmentation results.
+
+---
+
+13. ADVANCED 2D AND 3D COMPOSITING
+
+Create a compositing workspace that combines 2D layers, effects, masks, and supported 3D elements.
+
+13.1 2D Compositing
+
+Support:
+
+- Layer transforms
+- Blend modes
+- Alpha compositing
+- Premultiplied and straight-alpha handling
+- Adjustment layers
+- Masks
+- Nested compositions
+- Track mattes
+- Alpha mattes
+- Luma mattes
+- Shadow layers
+- Parent-child relationships
+- Anchor points
+- Motion blur
+- Compositing previews
+
+13.2 Blend Modes
+
+Implement common blend modes:
+
+- Normal
+- Multiply
+- Screen
+- Overlay
+- Soft light
+- Hard light
+- Darken
+- Lighten
+- Color dodge
+- Color burn
+- Difference
+- Exclusion
+- Add
+- Subtract
+- Hue
+- Saturation
+- Color
+- Luminosity
+
+Use mathematically appropriate compositing formulas.
+
+13.3 3D Workspace
+
+Implement practical 3D editing capabilities.
+
+Support:
+
+- 3D layer transforms
+- X, Y, and Z positioning
+- X, Y, and Z rotation
+- 3D scaling
+- Perspective cameras
+- Orthographic cameras
+- Camera movement
+- Camera keyframes
+- Camera focal length controls where appropriate
+- Depth ordering
+- Lighting
+- Ambient lighting
+- Directional lights
+- Point lights
+- Spotlights
+- Shadows
+- Material parameters
+- Basic reflections where practical
+- Depth of field where practical
+- Fog
+- 3D text where supported
+- 3D primitives
+- Plane meshes
+- Cubes
+- Spheres
+- Imported 3D models
+- Model transforms
+- Model materials
+- Animated 3D objects where compatible
+- 3D-to-2D compositing
+
+13.4 3D Asset Import
+
+Evaluate support for:
+
+- glTF
+- GLB
+- OBJ
+- Other formats only where appropriate libraries exist
+
+Use a well-maintained 3D runtime or rendering implementation compatible with Android.
+
+Do not assume that a 3D file format supports every material, animation, or simulation feature.
+
+13.5 Rendering Considerations
+
+Use GPU rendering for appropriate 2D and 3D operations.
+
+Keep the 3D engine modular.
+
+Provide a fallback path when a device lacks required GPU capabilities.
+
+Do not attempt to recreate an entire desktop 3D suite if that would compromise the core editing engine. Prioritize a stable 3D compositing system that can expand over time.
+
+---
+
+14. TEXT, TITLES, AND MOTION GRAPHICS
+
+Build a full title and graphics editor.
+
+14.1 Text Editing
+
+Support:
+
+- Multiple text layers
+- Custom fonts
+- Font size
+- Font weight
+- Italics
+- Alignment
+- Letter spacing
+- Line spacing
+- Text color
+- Gradient text
+- Stroke
+- Outline
+- Shadow
+- Glow
+- Background panels
+- Rounded backgrounds
+- Padding
+- Rotation
+- Position
+- Scale
+- Opacity
+- Text wrapping
+- Text boxes
+- Vertical alignment
+- Text animation
+- Text reveal
+- Typewriter animation
+- Word-by-word animation
+- Character-by-character animation
+- Text tracking
+- Text path animation where practical
+- Text masking
+- Animated gradients
+- Preset templates
+
+14.2 Motion Graphics
+
+Support:
+
+- Animated shapes
+- Rectangles
+- Circles
+- Lines
+- Polygons
+- Paths
+- Shape outlines
+- Shape fills
+- Gradients
+- Stroke animation
+- Path trimming
+- Repeater effects where practical
+- Shape morphing where practical
+- Parent-child animation
+- Null or controller layers
+- Motion paths
+- Easing controls
+- Motion blur
+- Title templates
+- Lower thirds
+- Intros
+- Outros
+- Logo animations
+- Social media templates
+- Animated callouts
+- Progress bars
+- Counters
+- Animated diagrams
+
+All motion graphics must integrate with the timeline and export pipeline.
+
+---
+
+15. PROFESSIONAL AUDIO EDITING ENGINE
+
+Audio editing must be treated as a core subsystem rather than an afterthought.
+
+15.1 Audio Timeline
+
+Support:
+
+- Multiple audio tracks
+- Independent audio clips
+- Waveform display
+- Clip gain
+- Track gain
+- Volume automation
+- Pan
+- Stereo balance
+- Mute
+- Solo
+- Track routing where practical
+- Audio fades
+- Crossfades
+- Clip splitting
+- Audio trimming
+- Audio slip
+- Audio synchronization
+- Audio markers
+- Audio looping
+- Channel selection
+- Mono and stereo handling
+- Multichannel audio where supported
+
+15.2 Audio Processing
+
+Implement:
+
+- Volume
+- Gain
+- Normalize
+- Peak normalization
+- Loudness normalization
+- Fade in
+- Fade out
+- Crossfade
+- Parametric EQ
+- Graphic EQ
+- High-pass filter
+- Low-pass filter
+- Band-pass filter
+- Notch filter
+- Compressor
+- Limiter
+- Expander
+- Gate
+- De-esser
+- Reverb
+- Delay
+- Echo
+- Chorus
+- Flanger
+- Phaser
+- Distortion
+- Saturation
+- Stereo widening
+- Stereo narrowing
+- Channel swapping
+- Channel extraction
+- Channel mixing
+- DC offset removal where needed
+- Clipping detection
+
+15.3 Audio Noise Reduction
+
+Implement a layered audio-cleanup system.
+
+Include:
+
+- Basic noise gate
+- Spectral noise reduction where practical
+- Broadband noise reduction
+- Hiss reduction
+- Hum removal
+- Click and pop reduction where practical
+- Wind-noise reduction where practical
+- De-reverberation where practical
+- Voice isolation where supported
+- Speech enhancement
+- Adaptive noise reduction where supported
+
+Provide adjustable strength and artifact controls.
+
+Do not promise perfect cleanup of heavily damaged audio.
+
+15.4 Pitch and Time Processing
+
+Implement:
+
+- Pitch shifting
+- Semitone adjustment
+- Fine pitch adjustment
+- Formant preservation where supported
+- Time stretching
+- Pitch-preserving slow motion
+- Pitch-preserving speed changes
+- Audio reverse
+- Looping
+- Vocal tuning or pitch correction where practical
+- Audio synchronization correction
+
+Use proper DSP algorithms rather than simply changing playback sample rates when pitch preservation is required.
+
+15.5 Voice Changers
+
+Provide a voice-effects workspace with:
+
+- Male-style voice effect
+- Female-style voice effect
+- Deep voice
+- High-pitched voice
+- Robot
+- Alien
+- Radio
+- Telephone
+- Monster
+- Cartoon
+- Echo voice
+- Reverberant voice
+- Distorted voice
+- Custom pitch
+- Formant adjustment where supported
+- Preset management
+- Effect intensity
+- Voice preview
+
+Label conventional DSP effects separately from AI voice conversion.
+
+For AI voice conversion, require a compatible model or provider and explicit user consent.
+
+Do not imply that simple pitch shifting is equivalent to a sophisticated AI voice-conversion model.
+
+15.6 Audio Analysis
+
+Implement:
+
+- Peak meter
+- RMS meter
+- Loudness meter
+- Clipping warnings
+- Silence detection
+- Voice activity detection where practical
+- Beat detection
+- Tempo estimation
+- Audio waveform generation
+- Optional spectral visualization
+- Audio quality diagnostics
+
+15.7 Audio Export
+
+Support appropriate audio export formats, including:
+
+- AAC
+- WAV
+- FLAC where supported
+- MP3 where the selected encoder permits it
+- Other formats when licensing and library availability permit
+
+Provide bitrate, sample rate, and channel settings where applicable.
+
+---
+
+16. SUBTITLES AND CAPTIONS
+
+Build a complete subtitle and caption workspace.
+
+16.1 Subtitle Creation
+
+Support:
+
+- Manual subtitles
+- AI-generated subtitles
+- Automatic speech recognition through configured providers
+- On-device transcription where supported
+- Subtitle import
+- Subtitle export
+- Subtitle timing adjustment
+- Word-level timing where available
+- Sentence-level timing
+- Speaker labels where supported
+- Subtitle track editing
+- Multi-language subtitles
+- Translation
+- Search and replace
+- Bulk styling
+- Subtitle splitting
+- Subtitle merging
+- Subtitle repositioning
+
+16.2 Subtitle Formats
+
+Support:
+
+- SRT
+- WebVTT
+- ASS
+- SSA where supported
+- Plain text transcripts
+- Internal project subtitle representation
+
+16.3 Caption Styling
+
+Provide:
+
+- Font family
+- Font size
+- Font weight
+- Text color
+- Stroke
+- Background
+- Background opacity
+- Shadow
+- Position
+- Alignment
+- Safe-area controls
+- Word highlighting
+- Karaoke-style captions
+- Animated captions
+- Emphasis styles
+- Per-word timing
+- Preset templates
+- Multi-line control
+
+16.4 Speech-to-Text Workflow
+
+The system should:
+
+1. Select an audio or video source.
+2. Choose a transcription provider or supported local model.
+3. Configure language and transcription options.
+4. Process the selected media.
+5. Display real progress.
+6. Return editable transcript segments.
+7. Allow manual correction.
+8. Synchronize subtitle timing.
+9. Export subtitles or render them into the video.
+
+Never upload media for transcription without clearly informing the user.
+
+---
+
+17. ADVANCED EXPORT AND RENDERING ENGINE
+
+Create a robust rendering system that combines the timeline, transforms, effects, audio, compositing, and color processing into a final output.
+
+The export engine must be independent of the UI layer.
+
+17.1 Export Formats
+
+Support appropriate combinations of:
+
+- MP4
+- MOV
+- WebM
+- Other container formats where supported
+
+Codec support must be determined by actual encoder availability.
+
+17.2 Video Codecs
+
+Support where available:
+
+- H.264/AVC
+- H.265/HEVC
+- AV1 where practical
+- VP9 where practical
+- ProRes-compatible workflows only where legally and technically supported
+- Image-sequence export where practical
+
+Do not claim codec support merely because a decoder exists.
+
+Encoding and decoding capabilities must be checked separately.
+
+17.3 Export Controls
+
+Provide:
+
+- Resolution
+- Frame rate
+- Video codec
+- Bitrate
+- Quality presets
+- Constant and variable bitrate where supported
+- Audio codec
+- Audio bitrate
+- Audio sample rate
+- Audio channels
+- Color-space settings
+- HDR options where supported
+- Output filename
+- Output destination
+- Estimated file size
+- Estimated render time where feasible
+- Render progress
+- Render speed
+- Elapsed time
+- Remaining-time estimate
+- Cancel
+- Pause and resume where technically possible
+- Background export where supported
+- Notifications
+- Export history
+
+17.4 Hardware Acceleration
+
+Use Android MediaCodec and compatible hardware acceleration paths when appropriate.
+
+Provide software fallbacks when supported.
+
+Evaluate FFmpeg for demuxing, filtering, muxing, and encoding tasks.
+
+Verify the exact FFmpeg build, enabled filters, codec availability, ABI compatibility, and redistribution licenses.
+
+Do not assume that every FFmpeg filter is available in a mobile build.
+
+17.5 Native Rendering Engine
+
+Use C++ and the Android NDK for performance-critical systems such as:
+
+- Native frame processing
+- Timeline render graph
+- Image conversion
+- GPU effect dispatch
+- Frame caching
+- Audio DSP
+- Pixel-format conversion
+- Native memory management
+- High-performance compositing
+
+Use JNI to expose stable interfaces to Kotlin.
+
+Avoid excessive JNI crossings for per-pixel or per-sample operations.
+
+17.6 Rendering Graph
+
+Design a render graph that can represent:
+
+- Source decoding
+- Frame selection
+- Transformations
+- Effects
+- Masks
+- Compositing
+- Color conversion
+- 3D scene rendering
+- Text rendering
+- Audio processing
+- Frame synchronization
+- Encoding
+- Muxing
+
+Separate timeline evaluation from rendering execution.
+
+The same timeline state must generate consistent preview and export results, subject to explicitly documented preview-quality differences.
+
+17.7 Export Reliability
+
+Implement:
+
+- Temporary output files
+- Finalization checks
+- Atomic final-file replacement where appropriate
+- Partial-output cleanup
+- Storage checks
+- Render cancellation
+- Render recovery where feasible
+- Thermal monitoring
+- Memory monitoring
+- Disk-space monitoring
+- Encoder failure recovery
+- Error reports
+- Export verification
+
+Never report success if the final file cannot be opened and validated.
+
+---
+
+18. PROXY MEDIA AND PERFORMANCE MANAGEMENT
+
+Professional editing requires careful resource management.
+
+Implement:
+
+- Proxy generation
+- Proxy resolution presets
+- Low-resolution preview
+- Adaptive preview quality
+- Preview caching
+- Render caching
+- Thumbnail caching
+- Waveform caching
+- Frame caching
+- Cache invalidation
+- Cache size limits
+- Cache cleanup
+- Background analysis
+- Memory-aware scheduling
+- GPU resource management
+- Thermal throttling
+- Low-storage warnings
+- Low-memory recovery
+
+Allow the user to choose between:
+
+- Performance mode
+- Balanced mode
+- Quality mode
+- Custom preview settings
+
+Use proxies for demanding source footage.
+
+Allow relinking to original media for final export.
+
+Do not silently export proxy media when the user expects original-quality output.
+
+---
+
+19. AI INTEGRATION SYSTEM: BYOK ARCHITECTURE
+
+KLIPSUP must support multiple AI provider categories.
+
+Users must bring their own API keys.
+
+The application must not require a KLIPSUP account or a mandatory paid KLIPSUP subscription.
+
+Do not hardcode provider credentials or force users through a proprietary backend.
+
+Use direct provider connections when technically and legally appropriate.
+
+A local backend or proxy must never be required merely to collect user API keys.
+
+19.1 AI Provider Categories
+
+Implement four independent AI capability groups.
+
+A. Text AI Providers
+
+For language models used in text-based tasks.
+
+Capabilities:
+
+- Video scripts
+- Scene descriptions
+- Storyboards
+- Voice-over scripts
+- Subtitle correction
+- Subtitle translation
+- Video titles
+- Video descriptions
+- Social media captions
+- Hashtag suggestions
+- Chapter titles
+- Editing suggestions
+- Shot lists
+- Content outlines
+- Narration
+- Transcript summarization
+- Text rewriting
+- Grammar correction
+- Hook generation
+- Dialogue writing
+- Creative brainstorming
+- Structured editing instructions
+
+Support compatible provider APIs through configurable adapters.
+
+Where possible, support:
+
+- OpenAI-compatible chat-completion APIs
+- Providers with compatible structured-output APIs
+- Providers with tool-calling support where appropriate
+- Custom base URLs
+- Provider-specific authentication
+- Provider-specific model selection
+
+Do not assume all providers implement identical API behavior.
+
+B. Image Generation Providers
+
+Capabilities:
+
+- Text-to-image
+- Image-to-image
+- Image variations
+- Background generation
+- Background replacement assets
+- Thumbnail generation
+- Poster generation
+- Cover art
+- Character concepts
+- Storyboard frames
+- Scene illustrations
+- Transparent-background generation where supported
+- Inpainting
+- Outpainting
+- Image enhancement
+- Upscaling
+- Style transformation
+- Aspect-ratio selection
+- Output resolution selection
+
+Allow providers to expose their supported image parameters.
+
+Do not show unsupported controls for providers that lack those capabilities.
+
+Generated images must be importable into the media library and timeline.
+
+C. Video Generation Providers
+
+Capabilities where provider APIs support them:
+
+- Text-to-video
+- Image-to-video
+- Video continuation
+- Video variation
+- Reference-image-guided generation
+- Scene generation
+- Short B-roll generation
+- Animated backgrounds
+- Camera-motion prompts
+- Motion-style prompts
+- Aspect-ratio selection
+- Duration selection
+- Resolution selection
+- Generated-clip preview
+- Generated-clip download
+- Generated-clip import into the project
+
+Support asynchronous jobs.
+
+Provide job IDs, progress states where available, polling, cancellation where supported, failure messages, and retry options.
+
+Do not invent a percentage when the provider does not expose progress.
+
+If generation is asynchronous, persist job state when practical.
+
+D. Audio AI Providers
+
+Capabilities where provider APIs support them:
+
+- Text-to-speech
+- Voice-over generation
+- Speech enhancement
+- Speech-to-text
+- Speaker diarization
+- AI dubbing
+- Translation
+- Voice conversion
+- Sound-effect generation
+- Music generation
+- Music continuation
+- Audio cleanup
+- Silence removal
+- Audio description
+- Optional beat and mood analysis
+
+Use separate capability declarations for each provider.
+
+A provider that offers text-to-speech must not automatically be assumed to support music generation, transcription, or voice conversion.
+
+---
+
+20. AI PROVIDER MANAGEMENT
+
+Create a dedicated AI Provider Center.
+
+Users must be able to:
+
+- Add a provider
+- Edit a provider
+- Delete a provider
+- Enable or disable a provider
+- Configure a base URL
+- Enter an API key
+- Choose a model
+- Refresh available models when supported
+- Test connectivity
+- View provider status
+- View supported capabilities
+- Configure request timeouts
+- Configure retry behavior
+- Configure optional custom headers where safe
+- Set generation defaults
+- Set a default provider per capability
+- Configure fallback providers
+- Inspect request errors
+- View usage estimates when available
+- Review recent job history
+
+The provider manager must support separate defaults for:
+
+- Text generation
+- Image generation
+- Video generation
+- Audio generation
+- Transcription
+
+A single provider must not be forced to handle every AI task.
+
+20.1 API Key Security
+
+Treat API keys as secrets.
+
+Requirements:
+
+- Use Android Keystore-backed encryption where appropriate.
+- Encrypt persisted credentials with a suitable key-management design.
+- Never store API keys in project files.
+- Never include API keys in logs.
+- Never print keys in exception messages.
+- Never expose keys to exported project archives.
+- Never transmit keys to unrelated services.
+- Redact credentials from diagnostics.
+- Allow users to remove credentials.
+- Avoid plaintext credential storage.
+- Explain that direct client-side API usage can expose a key to a compromised device or modified application.
+- Warn users about providers that require secrets unsuitable for client-side usage.
+
+Prefer Android-native secure storage rather than storing keys in ordinary SharedPreferences.
+
+20.2 API Compatibility
+
+Create separate provider adapters rather than assuming one generic API works for everything.
+
+Use a common internal interface for:
+
+- Authentication
+- Capability discovery
+- Model discovery
+- Request construction
+- Streaming
+- Job submission
+- Job polling
+- Asset retrieval
+- Error normalization
+- Usage reporting
+
+Support OpenAI-compatible endpoints where applicable.
+
+Support custom base URLs for compatible services.
+
+Provide provider-specific adapters when APIs differ substantially.
+
+For image, video, and audio providers, use their documented endpoints and supported request schemas.
+
+Do not invent endpoint URLs.
+
+Do not promise that every provider supports every feature.
+
+20.3 Cost and Privacy Controls
+
+Before sending a request, display available cost estimates where provider pricing or usage data permits.
+
+Show a warning when pricing cannot be determined.
+
+Allow users to configure:
+
+- Maximum generation duration
+- Maximum image dimensions
+- Maximum video resolution
+- Maximum number of generated outputs
+- Maximum request retries
+- Confirmation before expensive operations
+- Preferred low-cost models
+- Request timeouts
+- Upload confirmation
+- Optional usage limits
+
+Never represent an AI model as free merely because a provider offers a free signup tier.
+
+Distinguish:
+
+- Free local inference
+- Free hosted inference
+- Limited free-tier inference
+- Paid inference
+- Unknown pricing
+
+Do not promise zero-cost generation when a third-party provider may charge the user.
+
+---
+
+21. AI-POWERED VIDEO WORKFLOWS
+
+AI must integrate into the actual editing workflow.
+
+It must not exist only as a standalone chatbot.
+
+21.1 AI Editing Assistant
+
+Provide a contextual assistant that can:
+
+- Explain editing tools
+- Suggest cuts
+- Suggest pacing improvements
+- Identify potential dead air
+- Suggest B-roll
+- Suggest transitions
+- Recommend music placement
+- Generate title ideas
+- Propose a storyboard
+- Generate a shot list
+- Recommend color-grading starting points
+- Suggest caption styles
+- Summarize a transcript
+- Identify repeated content
+- Suggest alternate edits
+
+AI-generated editing plans must be inspectable before they are applied.
+
+21.2 Structured Editing Actions
+
+Design a safe structured action system for supported AI editing operations.
+
+Examples:
+
+- Create a text layer
+- Add subtitles
+- Add a marker
+- Propose a cut
+- Change a clip's transform
+- Add a supported effect
+- Create an adjustment layer
+- Add generated media to a bin
+- Create a rough-cut sequence
+
+The AI must never directly execute arbitrary code inside the editor.
+
+Validate every action against the project schema and permitted operations.
+
+Provide:
+
+- Preview
+- Confirmation
+- Undo
+- Action history
+- Validation errors
+- Safe rollback
+
+Do not silently delete or overwrite project content.
+
+21.3 Automatic Editing
+
+Provide optional AI-assisted workflows such as:
+
+- Automatic highlight selection
+- Silence-based rough cuts
+- Social media clip extraction
+- Podcast clip generation
+- Interview highlight extraction
+- Talking-head editing
+- Automatic scene segmentation
+- Beat-synchronized editing
+- Automatic subtitle generation
+- Automatic reframing
+- Long-video summarization
+- B-roll recommendations
+
+These features must use real analysis or configured AI services.
+
+When results are uncertain, let users inspect and correct them.
+
+---
+
+22. AI VIDEO GENERATION WORKSPACE
+
+Create a dedicated AI Video Studio.
+
+Include:
+
+- Text prompt editor
+- Image reference selector
+- Provider selector
+- Model selector
+- Aspect-ratio settings
+- Duration settings
+- Resolution settings
+- Supported generation parameters
+- Negative prompts where supported
+- Seed controls where supported
+- Generation queue
+- Job status
+- Retry
+- Cancel where supported
+- Result preview
+- Download
+- Import to media library
+- Insert at playhead
+- Append to timeline
+- Replace selected clip
+- Generate alternate versions
+- Prompt history
+- Saved generations
+- Provider-specific errors
+
+Provide clear information about provider limitations.
+
+Generated clips must enter the same media and timeline system as ordinary footage.
+
+Do not create a separate uneditable timeline for AI-generated videos.
+
+---
+
+23. AI IMAGE STUDIO
+
+Create a dedicated image-generation workspace.
+
+Include:
+
+- Prompt editor
+- Reference-image input
+- Provider selection
+- Model selection
+- Supported aspect ratios
+- Resolution selection
+- Image count
+- Style controls where supported
+- Seed controls where supported
+- Inpainting
+- Outpainting
+- Image variations
+- Generation history
+- Saved assets
+- Image preview
+- Transparent-background options where supported
+- Download and import
+- Direct insertion into the timeline
+- Thumbnail and poster creation
+
+Generated assets must be stored in a managed media library with metadata and source information.
+
+---
+
+24. SCRIPT AND STORYBOARD WORKSPACE
+
+Provide an AI-assisted script editor.
+
+Features:
+
+- Script writing
+- Script rewriting
+- Scene breakdown
+- Shot lists
+- Narration
+- Dialogue
+- Hook generation
+- Video outline
+- Scene timing estimates
+- Storyboard creation
+- Subtitle draft generation
+- Multi-language translation
+- Text-to-speech preview
+- Script version history
+- Copy and export
+- Convert script sections into timeline markers
+- Convert storyboard frames into timeline assets
+
+The user must be able to edit every generated text result.
+
+---
+
+25. AI VOICE-OVER AND DUBBING
+
+Support:
+
+- Text-to-speech
+- Voice selection
+- Supported language selection
+- Supported accent selection
+- Voice speed
+- Pitch where supported
+- Pauses
+- Pronunciation controls where supported
+- Voice preview
+- Batch narration
+- Script-to-audio generation
+- Timeline insertion
+- Audio replacement
+- AI dubbing where supported
+- Subtitle synchronization
+- Translation-assisted dubbing
+
+Require clear user consent before using external voice services.
+
+Respect provider terms, voice-consent requirements, and restrictions on impersonation.
+
+Do not claim that a voice is licensed for commercial use unless the applicable provider's terms establish that.
+
+---
+
+26. VIDEO ANALYSIS AND CONTENT INTELLIGENCE
+
+Create a video-analysis subsystem.
+
+Where supported, analyze:
+
+- Scene changes
+- Shot boundaries
+- Black frames
+- Silence
+- Audio peaks
+- Potentially blurred footage
+- Aspect ratio
+- Frame rate
+- Resolution
+- Audio clipping
+- Speech segments
+- Speaker changes
+- Repeated scenes
+- Potential highlight moments
+- Music beats
+- Motion intensity
+- Subtitle timing
+- Face or subject locations for reframing
+
+Prefer on-device analysis for tasks that do not require an external service.
+
+For cloud-based analysis, require explicit consent.
+
+Allow users to review and correct detected results.
+
+Do not upload complete source media merely to perform metadata checks that can be done locally.
+
+---
+
+27. PROFESSIONAL UI/UX DESIGN SYSTEM
+
+The interface is a core product requirement.
+
+KLIPSUP must feel like a professional creative workstation redesigned for Android.
+
+Do not create a generic template dashboard.
+
+Do not copy CapCut or Premiere Pro screen-for-screen.
+
+Design a distinctive visual identity for KLIPSUP.
+
+The application must remain usable on phones while supporting more advanced workflows on tablets, foldables, landscape layouts, and external displays where Android permits.
+
+27.1 Design Direction
+
+Use a refined professional creative-software aesthetic.
+
+Suggested direction:
+
+- Deep charcoal or near-black editing workspace
+- Neutral panels
+- Carefully chosen accent color
+- Clear typography
+- Subtle borders
+- Purposeful visual hierarchy
+- High-contrast selection states
+- Restrained animation
+- Consistent spacing
+- Professional icons
+- Contextual tooltips
+- Clear loading and error states
+
+Avoid:
+
+- Excessive neon effects
+- Unnecessary gradients
+- Oversized decorative cards
+- Excessive rounded containers
+- Cluttered toolbars
+- Inconsistent icons
+- Tiny touch targets
+- Fake professional-looking controls
+- Excessive nested menus
+- Excessive modal dialogs
+
+The interface must look polished without sacrificing usability.
+
+27.2 Design Tokens
+
+Create a centralized design system containing:
+
+- Color tokens
+- Typography tokens
+- Spacing tokens
+- Corner-radius tokens
+- Elevation tokens
+- Border tokens
+- Icon sizing
+- Touch-target sizing
+- Animation durations
+- Motion curves
+- Focus indicators
+- Disabled states
+- Error states
+- Success states
+- Warning states
+- Selection states
+
+Use reusable components rather than defining styling separately on every screen.
+
+Support dark mode and a well-designed light mode.
+
+27.3 Home Dashboard
+
+Include:
+
+- KLIPSUP branding
+- New Project
+- Open Project
+- Recent Projects
+- Search Projects
+- Project Thumbnails
+- Project Templates
+- Import Media
+- AI Studio
+- Export History
+- Storage Information
+- Settings
+
+Keep the dashboard fast and useful.
+
+Do not show promotional cards that obstruct the actual workflow.
+
+27.4 Editing Workspace Layout
+
+The editing workspace should adapt to device size.
+
+For landscape layouts, prioritize a professional arrangement:
+
+- Top toolbar
+- Preview monitor
+- Timeline
+- Track headers
+- Contextual inspector
+- Media browser
+- Effect browser
+- Audio tools
+- Color tools
+- Project and render information
+
+Allow panels to collapse, expand, resize where practical, and switch between workspaces.
+
+27.5 Editing Workspaces
+
+Provide dedicated workspaces:
+
+1. Edit
+2. Color
+3. Audio
+4. Effects
+5. Motion
+6. 3D
+7. Titles
+8. Subtitles
+9. AI Studio
+10. Export
+
+Each workspace should expose relevant tools without forcing every control onto one screen.
+
+27.6 Mobile Interaction Design
+
+Provide:
+
+- Large touch targets
+- Drag handles
+- Long-press menus
+- Context menus
+- Gesture-aware timeline navigation
+- Haptic feedback where appropriate
+- Undo and redo controls
+- Tooltips
+- Clear selection states
+- Multi-selection
+- Gesture conflict handling
+- Touch-friendly keyframe editing
+- Accessible numeric controls
+- Sliders with numeric entry
+- Zoomable graphs
+- Precision trim controls
+- On-screen editing controls
+
+Never require pixel-perfect finger placement for a critical operation when a precision alternative can be provided.
+
+27.7 Professional Preview Monitor
+
+Include:
+
+- Play and pause
+- Frame stepping
+- Playback speed
+- Timecode
+- Zoom
+- Fit to screen
+- Safe-area guides
+- Aspect-ratio guides
+- Grid overlays
+- Full-screen preview
+- Before-and-after comparison
+- Playback quality selector
+- Dropped-frame indicator where feasible
+- Color-management indicator
+- Proxy/original status
+
+27.8 Inspector Panel
+
+When a clip is selected, display relevant properties contextually.
+
+Examples:
+
+- Transform
+- Speed
+- Opacity
+- Audio
+- Effects
+- Masks
+- Tracking
+- Color
+- Keyframes
+- Media information
+
+Do not display unrelated settings for every clip type.
+
+27.9 Accessibility
+
+Implement:
+
+- Screen-reader labels
+- Accessible controls
+- Keyboard navigation where applicable
+- High-contrast options
+- Scalable text where appropriate
+- Color-independent status indicators
+- Clear error messages
+- Reduced-motion preferences where applicable
+
+27.10 UI State Requirements
+
+Every screen must include appropriate states for:
+
+- Initial loading
+- Empty data
+- Active processing
+- Success
+- Recoverable failure
+- Fatal failure
+- Permission denial
+- Offline conditions
+- Missing configuration
+- Unsupported feature
+- Cancellation
+- Partial completion
+
+No screen should become permanently blank when an operation fails.
+
+---
+
+28. KEYBOARD, MOUSE, AND EXTERNAL DISPLAY SUPPORT
+
+Although KLIPSUP is an Android application, optimize it for users who connect:
+
+- A Bluetooth keyboard
+- A mouse
+- A trackpad where supported
+- An external display
+- A USB storage device
+
+Provide keyboard shortcuts for common operations.
+
+Examples:
+
+- Undo
+- Redo
+- Save
+- Play and pause
+- Split
+- Delete
+- Copy
+- Paste
+- Duplicate
+- Zoom in
+- Zoom out
+- Move between frames
+- Jump between edits
+- Toggle snapping
+
+Allow shortcut customization where practical.
+
+Use mouse hover states, precise selection, context menus, and pointer-aware resizing where appropriate.
+
+Do not assume that Android supports every desktop windowing behavior.
+
+---
+
+29. PROJECT FILE AND ASSET MANAGEMENT
+
+Create a robust internal project format.
+
+A project must preserve:
+
+- Project settings
+- Track definitions
+- Clip positions
+- Clip durations
+- Media references
+- Effects
+- Keyframes
+- Masks
+- Transitions
+- Color settings
+- Audio settings
+- Subtitle data
+- Text and graphics
+- 3D scene data
+- Proxy references
+- AI generation metadata
+- Export settings
+- Timeline markers
+- Nested compositions
+- User workspace preferences where appropriate
+
+Use stable IDs for project objects.
+
+Never identify clips only by their current list position.
+
+Implement migration for older project versions.
+
+Add integrity checks and recoverable autosaves.
+
+Support optional project packaging with selected media.
+
+Warn users about missing or excessively large assets before packaging.
+
+---
+
+30. SECURITY AND PRIVACY
+
+Implement security appropriate for a creative application handling personal media and API credentials.
+
+Requirements:
+
+- Secure credential storage
+- No hardcoded secrets
+- Input validation
+- Safe file handling
+- Safe archive extraction
+- Protection against path traversal
+- URI permission handling
+- Network security configuration
+- TLS for remote API communication
+- Clear permission requests
+- Minimal required Android permissions
+- No silent background uploads
+- No hidden media collection
+- No API keys in crash reports
+- No sensitive content in ordinary logs
+- User-controlled deletion of AI history where practical
+- Clear privacy disclosures
+- Secure temporary-file cleanup
+
+Use scoped storage and Storage Access Framework APIs where appropriate.
+
+Do not bypass Android security restrictions without a legitimate platform-supported reason.
+
+---
+
+31. OFFLINE OPERATION
+
+The core editor must remain useful without an internet connection.
+
+Offline functionality should include:
+
+- Project creation
+- Local media import
+- Timeline editing
+- Basic video processing
+- Local audio processing
+- Text editing
+- Keyframes
+- Local effects
+- Color correction
+- Rendering using available local codecs
+- Project saving
+- Project recovery
+- Local subtitle editing
+- Local asset management
+
+AI features requiring cloud services must report that a provider connection is unavailable.
+
+Where practical, allow optional on-device AI models.
+
+Do not make core editing dependent on a cloud account.
+
+---
+
+32. PLUGINS AND EXTENSIBILITY
+
+Design extension points for future features.
+
+Potential extension categories:
+
+- Effects
+- Transitions
+- AI providers
+- Audio processors
+- Color tools
+- Importers
+- Exporters
+- File formats
+- 3D asset handlers
+- Templates
+- Motion graphics
+- Analysis tools
+
+Use a controlled plugin interface.
+
+Do not execute arbitrary downloaded native libraries without a suitable trust and security model.
+
+A provider adapter implemented inside the application should not require a full plugin framework.
+
+Prioritize stable internal interfaces before introducing external plugin installation.
+
+---
+
+33. ANALYTICS, LOGGING, AND DIAGNOSTICS
+
+Provide local diagnostics for:
+
+- Import failures
+- Unsupported codecs
+- Decoder errors
+- Rendering errors
+- Export failures
+- Memory pressure
+- GPU errors
+- Audio processing errors
+- AI provider failures
+- Network failures
+- Project recovery
+- Media relinking
+- Performance bottlenecks
+
+Logging must not reveal API keys or unnecessary private media details.
+
+Provide a user-controlled diagnostic report.
+
+Do not transmit diagnostics automatically without clear disclosure and appropriate consent.
+
+---
+
+34. TESTING REQUIREMENTS
+
+Testing is mandatory.
+
+34.1 Unit Tests
+
+Test:
+
+- Project serialization
+- Project migration
+- Timeline timing
+- Clip splitting
+- Trimming
+- Ripple edits
+- Keyframe interpolation
+- Transform evaluation
+- Audio gain calculations
+- Color conversion
+- Effect parameter validation
+- AI provider request construction
+- API-key redaction
+- Export configuration validation
+- Cache invalidation
+- Media relinking
+
+34.2 Integration Tests
+
+Test:
+
+- Importing video
+- Importing audio
+- Importing images
+- Creating a project
+- Editing multiple tracks
+- Saving and reopening
+- Generating thumbnails
+- Creating waveforms
+- Rendering effects
+- Rendering transitions
+- Rendering subtitles
+- Mixing audio
+- Exporting video
+- Exporting audio
+- Cancelling an export
+- Recovering interrupted projects
+- Connecting to mock AI providers
+
+34.3 UI Tests
+
+Test:
+
+- Home dashboard
+- Project creation
+- Media import
+- Timeline interactions
+- Clip selection
+- Inspector changes
+- Keyframe editing
+- Subtitle editing
+- AI provider configuration
+- Export workflow
+- Error dialogs
+- Recovery screens
+
+34.4 Media Validation
+
+For every export test:
+
+1. Verify that the output file exists.
+2. Verify that the file has a nonzero size.
+3. Inspect the container and streams.
+4. Confirm expected video dimensions.
+5. Confirm the intended frame rate.
+6. Confirm the expected audio stream.
+7. Decode the output to detect corruption.
+8. Verify duration and synchronization within appropriate tolerances.
+9. Compare expected effects and transformations.
+10. Confirm that the file can be opened by a compatible media player.
+
+34.5 Performance Tests
+
+Measure:
+
+- Startup time
+- Timeline responsiveness
+- Scrubbing latency
+- Thumbnail generation
+- Preview frame rate
+- Export speed
+- Peak memory
+- GPU memory usage where measurable
+- Thermal behavior
+- Battery consumption
+- Cache growth
+- Long-session stability
+
+Test short clips, long clips, high-resolution footage, and mixed-format timelines.
+
+Test on actual Android devices, not only emulators.
+
+---
+
+35. REQUIRED PROJECT STRUCTURE
+
+Use a modular structure broadly similar to the following. Adapt the exact module names when justified by the selected architecture.
+
+app/
+core/
+common/
+model/
+database/
+storage/
+security/
+networking/
+design-system/
+testing/
+
+feature/
+home/
+projects/
+media/
+editor/
+timeline/
+effects/
+color/
+audio/
+subtitles/
+motion/
+scene3d/
+ai/
+export/
+settings/
+diagnostics/
+
+media/
+importer/
+metadata/
+thumbnails/
+waveform/
+proxy/
+
+rendering/
+api/
+scheduler/
+compositor/
+transitions/
+color-pipeline/
+video-encoder/
+audio-mixer/
+cache/
+
+native/
+CMakeLists.txt
+include/
+src/
+tests/
+
+ai/
+core/
+text/
+image/
+video/
+audio/
+transcription/
+providers/
+
+project-format/
+schema/
+migrations/
+serialization/
+
+testing/
+unit/
+integration/
+ui/
+media-fixtures/
+
+docs/
+ARCHITECTURE.md
+BUILD.md
+PROJECT_FORMAT.md
+RENDERING.md
+AI_PROVIDERS.md
+SECURITY.md
+TESTING.md
+FEATURE_STATUS.md
+
+This is a suggested structure, not a reason to create empty modules unnecessarily.
+
+Every module must have a defined responsibility.
+
+---
+
+36. TECHNICAL IMPLEMENTATION STRATEGY
+
+Before selecting libraries, evaluate their current Android compatibility, maintenance status, licensing, ABI support, and performance.
+
+Potential technologies to evaluate include:
+
+- Kotlin
+- Jetpack Compose
+- Android View-based components where more suitable
+- Android MediaCodec
+- MediaExtractor
+- MediaMuxer
+- Android NDK
+- CMake
+- OpenGL ES
+- Vulkan where appropriate
+- FFmpeg
+- Oboe or another suitable low-latency audio framework
+- SQLite or Room for metadata
+- Android Keystore
+- Coroutines and Flow
+- A compatible 3D rendering engine
+
+Do not blindly include every technology listed.
+
+Select a coherent set of dependencies based on actual implementation needs.
+
+36.1 Media Engine Strategy
+
+Build a media abstraction layer.
+
+Separate:
+
+- Demuxing
+- Decoding
+- Frame scheduling
+- Video processing
+- Audio processing
+- Compositing
+- Encoding
+- Muxing
+- Metadata inspection
+
+Use Android-native media APIs when they provide the necessary functionality and compatibility.
+
+Evaluate FFmpeg when its filtering, demuxing, encoding, or muxing capabilities are required.
+
+Maintain a clear license inventory.
+
+If distributing FFmpeg, codecs, or other native libraries, verify the applicable licenses and redistribution obligations.
+
+Do not bundle incompatible or prohibited codecs.
+
+36.2 GPU Strategy
+
+Use GPU acceleration for operations that benefit from it.
+
+Evaluate:
+
+- GPU transforms
+- Texture compositing
+- Color correction
+- LUT processing
+- Blur
+- Glow
+- Mask rendering
+- Motion graphics
+- 3D rendering
+
+Use appropriate CPU fallbacks when necessary.
+
+Avoid unnecessary texture copies and CPU-GPU synchronization.
+
+Handle GPU resource loss and context recreation.
+
+36.3 Memory Strategy
+
+Never decode an entire long video into RAM.
+
+Use:
+
+- Streaming decoding
+- Bounded caches
+- Lazy thumbnail generation
+- Memory-aware image loading
+- Proxy workflows
+- Native buffer reuse
+- Explicit resource lifetimes
+- Background task cancellation
+
+Prevent memory leaks across JNI boundaries.
+
+Use appropriate ownership rules for native objects.
+
+36.4 Build Strategy
+
+Maintain:
+
+- A reproducible Gradle build
+- Compatible dependency versions
+- Native build configuration
+- ABI configuration
+- Debug and release variants
+- Signing configuration
+- ProGuard/R8 rules where needed
+- CI-compatible tests
+- Dependency and license documentation
+
+Never commit private signing keys or API credentials.
+
+---
+
+37. DEVELOPMENT PHASES
+
+Develop KLIPSUP in carefully verified phases.
+
+Do not attempt to build every advanced subsystem simultaneously.
+
+The following phases define the required delivery sequence.
+
+Phase 0: Feasibility and Architecture
+
+Deliver:
+
+- Requirements breakdown
+- Technical architecture
+- Dependency evaluation
+- Media-engine feasibility study
+- GPU strategy
+- Native-code strategy
+- AI-provider interface design
+- Project file schema
+- Security model
+- UI design system
+- Device compatibility strategy
+- Build configuration
+
+Identify major technical risks before committing to implementation choices.
+
+Phase 1: Application Foundation
+
+Implement:
+
+- Application shell
+- Home dashboard
+- Theme system
+- Project creation
+- Project persistence
+- Project browser
+- Basic media import
+- Media metadata
+- Thumbnail generation
+- Autosave
+- Recovery infrastructure
+
+Acceptance criterion: A project can be created, saved, reopened, and populated with imported media.
+
+Phase 2: Core Editing Engine
+
+Implement:
+
+- Preview monitor
+- Multitrack timeline
+- Clip selection
+- Clip movement
+- Trim
+- Split
+- Ripple delete
+- Track management
+- Playhead navigation
+- Basic transforms
+- Undo and redo
+- Save and restore timeline state
+
+Acceptance criterion: A user can construct and edit a multitrack sequence and preserve it across application restarts.
+
+Phase 3: First Complete Export Pipeline
+
+Implement:
+
+- Video decoding
+- Frame scheduling
+- Basic compositing
+- Audio decoding and mixing
+- Video encoding
+- Audio encoding
+- Container muxing
+- Export progress
+- Cancellation
+- Output validation
+
+Acceptance criterion: A multitrack project containing video, images, and audio can produce a playable output with correct timing.
+
+Do not postpone the first working export until every effect has been implemented.
+
+Phase 4: Editing and Animation
+
+Implement:
+
+- Advanced transforms
+- Speed controls
+- Reverse playback
+- Transitions
+- Keyframes
+- Easing
+- Graph editor
+- Masks
+- Text layers
+- Motion graphics
+- Basic effects
+
+Acceptance criterion: Animated properties and common editing operations render correctly in both preview and export.
+
+Phase 5: Audio Production
+
+Implement:
+
+- Audio timeline
+- Waveforms
+- Mixing
+- EQ
+- Compression
+- Limiting
+- Pitch shifting
+- Time stretching
+- Noise reduction
+- Voice effects
+- Audio export
+
+Acceptance criterion: Audio edits are preserved and rendered correctly in the final output.
+
+Phase 6: Professional Color
+
+Implement:
+
+- Primary correction
+- Color wheels
+- Curves
+- HSL controls
+- LUT support
+- Scopes
+- Color management
+- Supported HDR workflows
+
+Acceptance criterion: Color adjustments are applied consistently and the output color metadata is appropriate.
+
+Phase 7: Advanced Compositing and 3D
+
+Implement:
+
+- Advanced masks
+- Chroma key
+- Tracking
+- Adjustment layers
+- Advanced compositing
+- 3D layers
+- Cameras
+- Lighting
+- 3D asset import
+- Motion blur where supported
+
+Acceptance criterion: Supported compositing and 3D elements render correctly into the timeline output.
+
+Phase 8: AI Provider System
+
+Implement:
+
+- Secure API-key storage
+- Provider registry
+- Model selection
+- Capability discovery
+- Text generation
+- Image generation
+- Video generation
+- Audio generation
+- Transcription
+- Job history
+- Error handling
+- Usage information where available
+
+Acceptance criterion: At least one real provider in each advertised category works through its documented API, with clear provider-specific limitations.
+
+Phase 9: AI Editing Workflows
+
+Implement:
+
+- Script generation
+- Subtitles
+- Voice-over
+- Storyboards
+- Editing suggestions
+- AI-generated media import
+- Structured editing actions
+- Automatic rough cuts
+- Content analysis
+
+Acceptance criterion: AI outputs can be reviewed, edited, and integrated into ordinary projects without bypassing the editing engine.
+
+Phase 10: Performance and Reliability
+
+Implement:
+
+- Proxy media
+- Render caching
+- Memory optimization
+- GPU optimization
+- Thermal adaptation
+- Export recovery
+- Crash recovery
+- Long-session testing
+- Storage safeguards
+- Device compatibility testing
+
+Acceptance criterion: The application remains stable under representative workloads and degrades gracefully when device resources are insufficient.
+
+Phase 11: Release Preparation
+
+Complete:
+
+- Full regression tests
+- Accessibility checks
+- Security checks
+- License audit
+- Performance benchmarks
+- Build verification
+- APK generation
+- Installation tests
+- Release documentation
+- Feature support matrix
+- Known limitations
+- Final release checklist
+
+Acceptance criterion: The release build installs, launches, creates projects, edits media, exports videos, and passes the defined release tests.
+
+---
+
+38. FEATURE COMPLETION POLICY
+
+Maintain a FEATURE_STATUS.md file.
+
+For every feature, record one of the following states:
+
+- Not Started
+- In Progress
+- Implemented
+- Tested
+- Verified on Device
+- Blocked
+- Deferred
+
+Every feature must also document:
+
+- Module
+- Dependencies
+- Current limitations
+- Test coverage
+- Known bugs
+- Required permissions
+- Performance considerations
+
+Do not label a feature fully complete merely because its UI exists.
+
+A feature is complete only when its core behavior is implemented and tested.
+
+For major media features, require an integration test.
+
+For device-dependent features, require real-device verification before marking them Verified on Device.
+
+---
+
+39. DEFINITION OF DONE
+
+The project is not complete merely because Gradle produces an APK.
+
+The first production-ready milestone must demonstrate all of the following:
+
+1. KLIPSUP installs and launches on Android.
+2. A project can be created and saved.
+3. Video, audio, and image media can be imported.
+4. The timeline supports multiple tracks.
+5. Clips can be moved, trimmed, split, and deleted.
+6. Basic transforms work.
+7. Audio and video remain synchronized.
+8. Projects survive application restarts.
+9. Undo and redo work.
+10. At least one real video export succeeds.
+11. Exported files can be decoded and played.
+12. Export errors are reported accurately.
+13. API credentials are handled securely.
+14. The application can operate offline for core editing.
+15. The interface adapts to phone and larger-screen layouts.
+16. Major workflows have automated tests.
+17. The feature-status document reflects actual implementation.
+18. No critical workflow depends on a placeholder.
+
+The full product must subsequently satisfy the acceptance criteria of its advanced feature phases.
+
+---
+
+40. CODING AGENT EXECUTION INSTRUCTIONS
+
+You are expected to implement the application, not merely describe how it could be built.
+
+Start by examining the existing development environment and repository.
+
+If a repository already exists:
+
+- Inspect its current architecture.
+- Read existing documentation.
+- Review build files.
+- Identify completed functionality.
+- Identify broken functionality.
+- Preserve working code.
+- Avoid unnecessary rewrites.
+- Create a documented implementation plan.
+
+If no repository exists:
+
+- Create the project using the required application identity.
+- Configure the Android application ID as alias.klips.net.
+- Establish a reproducible build.
+- Create the module structure.
+- Add the initial design system.
+- Implement the first working vertical slice.
+
+Before introducing a dependency, verify that it is compatible with the Android target and chosen build configuration.
+
+Do not invent library APIs or configuration properties.
+
+Consult official documentation when necessary.
+
+Execution Loop
+
+For every development task:
+
+1. Inspect the relevant files.
+2. Identify dependencies and integration points.
+3. Define the expected behavior.
+4. Implement the feature.
+5. Run relevant tests.
+6. Build the application.
+7. Fix compilation and integration errors.
+8. Verify the actual behavior where possible.
+9. Update documentation.
+10. Update FEATURE_STATUS.md.
+11. Report completed work and remaining limitations.
+
+When a task is too large, divide it into smaller implementation tasks.
+
+Do not stop after generating architecture documents or UI mockups.
+
+Avoid These Failure Modes
+
+Never:
+
+- Generate an enormous collection of empty classes.
+- Build a fake timeline with no real editing behavior.
+- Use hardcoded sample data as if it were real media.
+- Implement export by simply copying the original input file.
+- Claim that effects work when they are not connected to rendering.
+- Claim that AI generation works without a real provider response.
+- Fake a rendering progress bar.
+- Ignore failed tests.
+- Disable tests to obtain a successful build.
+- Hide unsupported codec errors.
+- Silently discard project data.
+- Replace existing working functionality without justification.
+- Introduce incompatible dependencies.
+- Commit secrets.
+- Ignore memory and thermal constraints.
+- Claim that all devices support the same rendering features.
+
+If a requested feature is blocked by a missing dependency, hardware limitation, licensing restriction, or provider limitation, explain the specific issue and implement the best viable alternative.
+
+---
+
+41. FINAL DELIVERY REQUIREMENTS
+
+Deliver a maintainable, documented Android project containing:
+
+- Complete Android source code
+- Native C++ source code where used
+- Gradle build configuration
+- CMake configuration
+- Required resources
+- UI components
+- Media processing modules
+- Timeline engine
+- Rendering engine
+- Audio processing modules
+- Color grading modules
+- Effects system
+- AI provider adapters
+- Project serialization
+- Database migrations where needed
+- Unit tests
+- Integration tests
+- UI tests
+- Media test fixtures
+- Build instructions
+- Architecture documentation
+- Security documentation
+- Dependency and license inventory
+- Feature status report
+- Known limitations
+- Debug APK when successfully built
+- Release APK when successfully built and appropriately signed
+
+If the development environment supports artifact generation, produce the APK and verify its installation and launch.
+
+Do not claim to have generated an APK if no APK exists.
+
+If a requested feature cannot be implemented within the current execution budget, document the blocker, finish the current working milestone, and provide a concrete continuation plan.
+
+---
+
+42. START NOW
+
+Begin with Phase 0.
+
+First inspect the available repository and development environment.
+
+Then produce a concise technical assessment covering:
+
+1. Existing project state
+2. Recommended architecture
+3. Selected media-processing technologies
+4. Native C++ integration strategy
+5. Timeline and rendering strategy
+6. AI provider architecture
+7. UI/UX implementation plan
+8. Build compatibility risks
+9. Initial milestone
+10. Acceptance tests for the initial milestone
+
+After the assessment, proceed directly to implementation of the first working vertical slice.
+
+Do not wait for me to approve every small implementation decision.
+
+Make reasonable engineering decisions, document important trade-offs, and continue autonomously within the available environment.
+
+However, do not skip major milestones or pretend that incomplete functionality has been implemented.
+
+Final objective: Build KLIPSUP into a genuinely functional, professional-grade Android video editing application with a powerful native editing engine, desktop-inspired workflows, advanced color and audio tools, 2D/3D compositing, and a flexible BYOK AI ecosystem.

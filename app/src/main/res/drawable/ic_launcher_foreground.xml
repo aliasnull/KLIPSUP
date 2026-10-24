@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Professional cinema filmstrip & play blade emblem in 66dp safe zone -->
+    <path
+        android:fillColor="#FF38BDF8"
+        android:pathData="M28,32 C28,29.79 29.79,28 32,28 L76,28 C78.21,28 80,29.79 80,32 L80,76 C80,78.21 78.21,80 76,80 L32,80 C29.79,80 28,78.21 28,76 Z M34,34 L34,40 L40,40 L40,34 Z M34,51 L34,57 L40,57 L40,51 Z M34,68 L34,74 L40,74 L40,68 Z M68,34 L68,40 L74,40 L74,34 Z M68,51 L68,57 L74,57 L74,51 Z M68,68 L68,74 L74,74 L74,68 Z" />
+    <path
+        android:fillColor="#FFF59E0B"
+        android:pathData="M46,40 L66,54 L46,68 Z" />
+</vector>

@@ -1,0 +1,1006 @@
+KLIPSUP FOLLOW-UP TASK
+
+UI/UX Refinement, Native Media Library, Project Creation, AI Provider Management and Functional Validation
+
+You are continuing development of the existing Android application:
+
+Application Name: KLIPSUP
+Package Name: alias.klips.net
+
+This is a follow-up engineering task for the existing KLIPSUP implementation.
+
+Do not start a new application or replace the current project with a separate implementation.
+
+First inspect the existing codebase, current screens, architecture, media import flow, project management system, AI provider configuration, and native rendering implementation.
+
+Your task is to refine the current application into a more polished, intuitive, functional, and professional video editing experience.
+
+The supplied screenshots represent the current application UI. Use them as visual references for identifying layout problems and understanding the existing design.
+
+The red markings in the screenshots identify areas that need attention.
+
+Implement actual functionality, not just visual changes.
+
+---
+
+1. CRITICAL ISSUE: MISSING NEW PROJECT WORKFLOW
+
+The current homepage prominently displays an existing project, but there is no sufficiently obvious and direct New Project or Create Project action.
+
+This is a major usability problem.
+
+Users should immediately understand how to start editing a new video.
+
+1.1 Add a Prominent New Project Button
+
+Add a clearly visible primary action on the homepage:
+
++ New Project
+
+The button must be available without requiring users to scroll through project templates or open an existing project first.
+
+Recommended homepage hierarchy:
+
+1. KLIPSUP branding and compact application toolbar
+2. New Project primary action
+3. Recent Projects
+4. Project templates
+5. Media import and other quick actions
+6. Optional secondary features
+
+Adapt this hierarchy to the actual screen size.
+
+Do not make the New Project button dependent on a hidden overflow menu.
+
+Provide a secondary Open Project action where appropriate.
+
+1.2 New Project Creation Flow
+
+When the user taps New Project, open a proper project creation workflow.
+
+Include:
+
+- Project name
+- Aspect ratio
+- Resolution
+- Frame rate
+- Audio settings where relevant
+- Optional project template
+- Create Project button
+- Cancel button
+
+Provide presets for:
+
+- 16:9
+- 9:16
+- 1:1
+- 4:5
+- 4:3
+- Custom aspect ratio
+
+Provide common resolution and frame-rate presets.
+
+Reasonable defaults may be preselected, but the user must be able to change them.
+
+Do not require users to configure every advanced setting before creating a project.
+
+Provide an optional advanced-settings section.
+
+After the user creates the project, open the in-app media selection workflow described below.
+
+The project must be saved in the application's project management system.
+
+If the user cancels media selection, preserve the newly created empty project and allow them to import media later.
+
+Never discard a project merely because the user exits the media picker.
+
+---
+
+2. CRITICAL ISSUE: BUILD AN IN-APP MEDIA PICKER
+
+The current application opens the Android system media picker when the user tries to import video or images.
+
+The desired experience is different.
+
+Create a dedicated KLIPSUP media selection interface inspired by the familiar workflows of professional mobile video editors.
+
+The application should display the user's accessible local media inside its own interface.
+
+Do not simply launch Android's standard visual photo picker and consider the feature complete.
+
+The application may still use Android-supported storage APIs to obtain media access. The requirement concerns the user-facing browsing interface.
+
+2.1 Media Picker Entry Points
+
+Open the same reusable media picker from:
+
+- New Project workflow
+- Import Media
+- Add Clip
+- Add Overlay
+- Add Audio
+- Add Image
+- Replace Media
+- Add Subtitle Background or Graphics where applicable
+
+Support contextual filtering based on the action.
+
+For example:
+
+- Add Clip opens the video-focused browser.
+- Add Audio opens the audio-focused browser.
+- Add Overlay opens the image and video browser.
+- General Import Media allows all supported media categories.
+
+The picker must return selected assets to the correct editing workflow.
+
+2.2 Required Media Picker Tabs
+
+Create an in-app media browser with the following primary tabs:
+
+1. Videos
+2. Photos
+3. Audio
+4. Albums
+5. All Media
+
+Use a clean, touch-friendly tab or segmented navigation system.
+
+The selected tab must be visually obvious.
+
+Do not force users to browse every file type in a single undifferentiated list.
+
+Videos Tab
+
+Display accessible video files with:
+
+- Thumbnail
+- Duration
+- Resolution where available
+- Filename or display name
+- Selection state
+- Optional file size
+- Optional frame-rate metadata when available
+
+Photos Tab
+
+Display images with:
+
+- Thumbnail
+- Filename or display name
+- Image dimensions where available
+- Selection state
+
+Support common image formats that the application's media backend can actually read.
+
+Audio Tab
+
+Display accessible audio files with:
+
+- Filename
+- Duration where available
+- Audio format
+- File size where available
+- Optional waveform preview
+- Selection state
+
+Albums Tab
+
+Show media grouped into albums or collections.
+
+Examples may include:
+
+- Camera
+- Screenshots
+- Downloads
+- Screen Recordings
+- Other available device albums
+
+Use actual device media metadata where possible.
+
+Do not hardcode album names that may not exist on the user's device.
+
+All Media Tab
+
+Display all supported media assets in a unified, filterable grid.
+
+Include appropriate file-type indicators.
+
+2.3 Album Navigation
+
+When the user opens an album:
+
+- Display the album title.
+- Show its media count.
+- Display the album's actual accessible assets.
+- Allow selecting multiple assets.
+- Provide a back action to return to the album list.
+
+Do not create a fake album interface populated with demo assets.
+
+2.4 Search, Sort and Filter
+
+Provide:
+
+- Search by filename
+- Newest first
+- Oldest first
+- Duration sorting for audio and video
+- Name sorting
+- Media-type filters
+- Album filters
+- Optional favorites
+- Empty-state messaging
+
+Keep these controls compact and easy to use.
+
+2.5 Multi-Selection
+
+Support selecting multiple assets before confirming the import.
+
+For every selected asset:
+
+- Show a clear selection indicator.
+- Maintain the selection when switching tabs if the selected asset remains valid for the active import workflow.
+- Prevent accidental duplicate selection.
+- Show the total number of selected items.
+
+Display a persistent bottom action area with:
+
+Add to Project (N)
+
+Here, N represents the number of selected assets.
+
+The button must be disabled when no assets are selected.
+
+Provide a clear way to deselect assets.
+
+2.6 Selection Order and Timeline Insertion
+
+Preserve a deterministic selection order.
+
+For multi-select workflows, support a predictable ordering rule, such as the order in which assets were selected.
+
+Clearly communicate the behavior before insertion.
+
+Where applicable, offer:
+
+- Add to Media Bin
+- Insert at Playhead
+- Append to Timeline
+- Create Sequence from Selection
+
+For a newly created project, offer an appropriate option to add selected media to the project timeline.
+
+Do not silently insert every imported file into an unexpected track.
+
+2.7 Storage Permissions
+
+Inspect the current permission implementation before changing it.
+
+Use Android-supported storage APIs.
+
+Where broad media access is necessary and permitted, request the appropriate Android media permissions for the supported OS versions.
+
+For modern Android versions, handle the applicable image, video, and audio permission model correctly.
+
+Account for Android versions where access is limited to user-selected media.
+
+Handle permission denial gracefully.
+
+If permission is denied, explain what functionality is unavailable and provide a clear recovery action.
+
+Do not repeatedly show permission prompts without user interaction.
+
+Do not request MANAGE_EXTERNAL_STORAGE unless a legitimate requirement exists and its use is justified.
+
+Prefer MediaStore for indexed device media.
+
+Use Storage Access Framework for manually selected documents and media outside the indexed collection.
+
+2.8 Media Loading Performance
+
+The picker must remain responsive when the device contains thousands of files.
+
+Implement:
+
+- Lazy loading
+- Paginated queries where appropriate
+- Thumbnail caching
+- Asynchronous metadata loading
+- Efficient image decoding
+- Cancellation of obsolete loading jobs
+- Stable item IDs
+- Incremental updates
+- Efficient scrolling
+- Memory-aware image loading
+
+Do not load every full-resolution image into memory.
+
+Do not repeatedly regenerate thumbnails during scrolling.
+
+2.9 Missing Media and Unsupported Files
+
+Handle:
+
+- Deleted files
+- Revoked URI access
+- Unsupported codecs
+- Corrupted files
+- Unreadable media
+- Files without thumbnails
+- Files with incomplete metadata
+- Media moved after a project was created
+
+Display meaningful error states.
+
+One inaccessible file must not crash the entire media picker.
+
+2.10 Media Picker Acceptance Criteria
+
+The feature is complete only when:
+
+1. New Project opens the project creation flow.
+2. Creating a project opens the KLIPSUP media picker.
+3. The picker displays real device media.
+4. Videos, photos, audio, albums, and all media are separately accessible.
+5. Album navigation works.
+6. Multi-selection works.
+7. The selection count updates correctly.
+8. Selected assets can be imported into a project.
+9. The user can cancel without losing the project.
+10. The system photo picker is not used as the main visible media browsing experience.
+11. Permission denial is handled correctly.
+12. The picker works with a large media collection without excessive memory usage.
+
+---
+
+3. HOMEPAGE HEADER: REMOVE THE UNNECESSARY BLUE PILLAR
+
+The screenshots show a long vertical cyan or sky-blue rounded shape on the right side of the KLIPSUP homepage header.
+
+It occupies significant visual space without communicating an obvious function.
+
+Investigate its source in the current UI implementation.
+
+It may be caused by an oversized component, an incorrectly constrained layout, a misplaced decorative shape, a button with excessive height, or an unintended layout expansion.
+
+Do not assume which component is responsible without inspecting the code.
+
+Required Fix
+
+Remove the unexplained vertical blue element unless it is a deliberate functional control with a clear purpose.
+
+Do not replace it with another decorative object that creates the same problem.
+
+Redesign the header using a balanced horizontal layout.
+
+Recommended composition:
+
+- KLIPSUP application icon
+- KLIPSUP wordmark
+- Compact subtitle: NON-LINEAR VIDEO & MOTION WORKSTATION
+- Optional small utility actions
+
+The header should occupy only the space necessary for branding and useful controls.
+
+Requirements:
+
+- No unexplained vertical bars or pills.
+- No oversized empty decorative area.
+- No accidental clipping.
+- No distorted logo.
+- No unnecessary vertical spacing.
+- No overlap between branding and utility controls.
+- Proper alignment in portrait and landscape layouts.
+- Responsive behavior on narrow phones and larger displays.
+
+If a progress indicator or loading animation currently produces the blue shape, fix its dimensions and visibility rules rather than removing a legitimate loading state.
+
+Homepage Header Acceptance Criteria
+
+Verify the result at:
+
+- Narrow phone widths
+- Standard phone widths
+- Larger phone widths
+- Landscape orientation
+- Larger-screen layouts
+
+The header must remain compact, readable, and visually balanced.
+
+---
+
+4. HOMEPAGE LAYOUT POLISH
+
+The screenshots show that the homepage contains useful cards and templates, but the hierarchy and spacing need improvement.
+
+Refine the existing interface rather than replacing the complete design without reason.
+
+4.1 Recommended Homepage Structure
+
+Use this general hierarchy:
+
+Header
+
+- KLIPSUP icon
+- KLIPSUP wordmark
+- Compact tagline
+- Useful settings or utility action if needed
+
+Primary Action
+
+A prominent New Project button.
+
+Optionally provide Open Project beside it when space allows.
+
+Recent Projects
+
+Display recently edited projects with:
+
+- Project thumbnail
+- Project name
+- Resolution
+- Frame rate
+- Last edited information
+- Context menu
+
+Allow opening a recent project directly.
+
+Provide a meaningful empty state when no projects exist.
+
+Quick Actions
+
+Provide compact actions for:
+
+- Import Media
+- AI Studio
+- Color Grading
+- Deliver / Export
+
+These should not overpower the primary New Project action.
+
+Project Templates
+
+Show project templates in a horizontally scrollable or adaptive grid layout.
+
+Examples:
+
+- YouTube Landscape
+- Shorts and Reels
+- Square Social Video
+- Cinematic Widescreen
+- Custom Project
+
+Use realistic project settings.
+
+Templates should preconfigure settings rather than create unnecessary empty projects without explanation.
+
+4.2 Layout Rules
+
+- Remove redundant empty space.
+- Avoid oversized decorative elements.
+- Prevent text clipping.
+- Prevent horizontal overflow.
+- Ensure cards fit narrow screens.
+- Avoid excessively tall cards.
+- Keep labels readable.
+- Use consistent spacing.
+- Use consistent card heights where practical.
+- Preserve the existing dark professional visual identity.
+- Use the existing cyan accent color consistently.
+- Ensure all clickable controls have appropriate touch targets.
+
+Do not force three-column cards onto a screen too narrow to support them comfortably.
+
+Use adaptive layouts based on available width.
+
+4.3 Scrolling and Navigation
+
+The homepage must scroll naturally.
+
+The bottom navigation or primary navigation must not overlap important content.
+
+Avoid nested scroll containers that interfere with gestures.
+
+Ensure that the user can reach the last template or card without content being hidden behind navigation.
+
+---
+
+5. FIX THE TIMELINE TOOLBAR AND OVERFLOW
+
+The screenshots show the timeline editing toolbar extending beyond the visible editing area.
+
+Some tool labels appear clipped at the right edge.
+
+The timeline ruler and horizontal layout also need validation.
+
+Requirements
+
+Review the timeline toolbar and its containing layout.
+
+Implement a suitable responsive strategy:
+
+- Horizontally scrollable tool strip, or
+- Context-sensitive tool groups, or
+- Compact icon buttons with accessible tooltips, or
+- An overflow menu for less frequently used operations
+
+Do not shrink every label until it becomes unreadable.
+
+Keep commonly used operations visible.
+
+Ensure that each tool remains accessible.
+
+Validate:
+
+- Select and Move
+- Blade Split
+- Ripple Trim
+- Slip
+- Other existing tools
+
+If a tool is not implemented, do not display it as an active working tool.
+
+Clearly distinguish unavailable tools from functional ones.
+
+Timeline Ruler
+
+Ensure that:
+
+- Time markers remain readable.
+- Zooming works correctly.
+- The playhead remains aligned with the actual timeline time.
+- Horizontal scrolling is smooth.
+- Clip boundaries are accurate.
+- Timeline scaling does not produce visual drift.
+- Track headers remain usable.
+- Clips can be selected and manipulated accurately.
+
+Do not introduce visual changes that break the existing editing engine.
+
+---
+
+6. MULTIPLE OPENAI-COMPATIBLE API CONFIGURATIONS
+
+The current AI Studio displays an OpenAI / Compatible API option.
+
+Keep that integration, but improve it to support multiple independently configured providers.
+
+A single OpenAI-compatible integration must not mean a single saved API key or a single base URL.
+
+Users must be able to configure multiple compatible services simultaneously.
+
+Examples include compatible services that use different:
+
+- Base URLs
+- API keys
+- Model names
+- Authentication conventions
+- Rate limits
+- Context limits
+- Request formats
+- Usage pricing
+
+Do not hardcode these examples as if they were guaranteed to have identical APIs.
+
+6.1 AI Provider Center
+
+Create a dedicated provider-management screen.
+
+Include:
+
+- Add Provider
+- Edit Provider
+- Duplicate Configuration
+- Delete Provider
+- Enable or Disable
+- Set as Default
+- Test Connection
+- Refresh Models where supported
+- Select Model
+- Configure Capabilities
+- View Connection Status
+
+The user must be able to save multiple configurations of the OpenAI-compatible provider type.
+
+For example, a user might configure:
+
+- Compatible Provider A with its own base URL, key, and model
+- Compatible Provider B with a different base URL, key, and model
+- Compatible Provider C with another endpoint and configuration
+
+All three must remain saved independently.
+
+The exact provider names are user-defined.
+
+6.2 Provider Configuration Fields
+
+For compatible APIs, support the applicable fields:
+
+- Display Name
+- Provider Type
+- Base URL
+- API Key
+- Model ID
+- Optional Organization or Project ID when required
+- Optional supported custom headers
+- Request Timeout
+- Maximum Retry Count
+- Context Limit when known
+- Default Sampling Parameters when supported
+- Streaming Support
+- Tool Calling Support
+- Structured Output Support
+- Provider Notes
+- Enabled Status
+
+Do not require every provider to support every field.
+
+Display advanced options only when useful.
+
+Validate URLs and required fields.
+
+Do not silently append an endpoint path that creates an invalid URL.
+
+Normalize base URLs carefully and document the expected format.
+
+6.3 Model Discovery
+
+Provide a Refresh Models button when the provider supports model discovery.
+
+If model discovery is unsupported or fails, allow the user to enter a model ID manually.
+
+Do not claim that a model is available merely because its name was entered.
+
+Distinguish:
+
+- Connection successful
+- Authentication failed
+- Model list retrieved
+- Model list unavailable
+- Model not verified
+- Provider unavailable
+
+6.4 Per-Task Provider Selection
+
+Allow independent default configurations for:
+
+- Text Generation
+- Script Writing
+- Subtitle Assistance
+- Image Generation
+- Video Generation
+- Audio Generation
+- Speech-to-Text
+- Text-to-Speech
+
+A provider must only be offered for a task when it advertises or has been configured for the necessary capability.
+
+For example, a text-only endpoint must not be shown as a working video-generation provider.
+
+6.5 Request Routing
+
+Create a provider registry that resolves requests to the selected configuration.
+
+Each configuration must have its own:
+
+- Stable ID
+- Display name
+- Base URL
+- Secure credential reference
+- Model configuration
+- Capability declaration
+- Request settings
+- Connection status
+
+The selected configuration must determine which credentials, endpoint, and model are used.
+
+Never accidentally use Provider A's API key when sending a request through Provider B.
+
+Avoid global singleton variables containing one mutable API key or base URL for all providers.
+
+6.6 Secure Credential Storage
+
+Use secure, Android-appropriate credential storage.
+
+Requirements:
+
+- Store keys encrypted.
+- Use Android Keystore-backed key management where appropriate.
+- Never store API keys in ordinary project metadata.
+- Never expose API keys in logs.
+- Never display the full key after saving.
+- Allow replacing or deleting saved keys.
+- Ensure provider duplication does not unintentionally copy secrets without an explicit user decision.
+- Ensure exports and backups do not leak credentials.
+- Avoid logging sensitive request headers.
+
+6.7 Provider Testing
+
+The Test Connection action should make an actual request supported by that provider.
+
+Report real results.
+
+Examples:
+
+- Connection successful
+- Invalid API key
+- Invalid base URL
+- Model unavailable
+- Unsupported endpoint
+- Rate limit exceeded
+- Request timed out
+- Provider returned an error
+
+Never display a fake success message.
+
+6.8 AI Usage and Cost
+
+Show available usage information when the provider exposes it.
+
+Where pricing is known, provide a reasonable estimate before expensive operations.
+
+Where pricing is unknown, display that the cost cannot be verified.
+
+Allow users to choose a default provider per task.
+
+Support manual switching between providers.
+
+Do not require the user to re-enter an API key every time they change models within a saved configuration.
+
+---
+
+7. IMPROVE THE AI STUDIO INTERFACE
+
+The current AI Studio includes provider choices, but the layout needs a more coherent provider-management workflow.
+
+Refine the interface around these sections:
+
+1. AI Overview
+2. Providers
+3. Models
+4. Text Studio
+5. Image Studio
+6. Video Studio
+7. Audio Studio
+8. Transcription
+9. Generation History
+10. Usage and Diagnostics
+
+Do not place every option on a single crowded screen.
+
+Provider Selection UI
+
+Display each saved provider as a compact card or list item containing:
+
+- Provider name
+- Provider type
+- Selected model
+- Supported capabilities
+- Connection status
+- Default indicator
+
+Provide an obvious Add Provider button.
+
+Allow users to select a different saved configuration without deleting or replacing the previous one.
+
+For mobile layouts, use a clear bottom sheet or full-screen editor for adding and editing provider configurations.
+
+Do not place long configuration labels in a narrow circular button or similarly constrained component.
+
+---
+
+8. FUNCTIONAL POLISH AND GENERAL BUG FIXES
+
+Inspect the entire application for similar problems.
+
+Look for:
+
+- Unexpected oversized components
+- Clipped text
+- Broken constraints
+- Incorrect scrolling
+- Unresponsive controls
+- Inconsistent padding
+- Missing empty states
+- Unclear navigation
+- Misleading button labels
+- Fake loading indicators
+- Missing cancellation behavior
+- Broken back navigation
+- Incorrect touch targets
+- Layout problems in portrait orientation
+- Layout problems in landscape orientation
+- Missing permission handling
+- Unhandled API errors
+- Unnecessary placeholder content
+
+Do not limit the review to the areas explicitly marked in the screenshots if related issues are present elsewhere.
+
+However, prioritize the requested fixes before unrelated redesigns.
+
+---
+
+9. VISUAL DESIGN REQUIREMENTS
+
+Preserve KLIPSUP's existing identity.
+
+Keep:
+
+- Dark professional editing interface
+- Cyan accent color
+- Clean typography
+- Technical workstation aesthetic
+- Clear visual separation between sections
+
+Improve:
+
+- Spacing
+- Hierarchy
+- Alignment
+- Component proportions
+- Responsive behavior
+- Navigation clarity
+- Text readability
+- Consistency between screens
+
+Do not introduce excessive gradients, decorative bars, unnecessary icons, or large empty cards.
+
+Every prominent visual element must have a clear purpose.
+
+Every interactive component must provide appropriate feedback.
+
+Use shared design tokens rather than inconsistent one-off colors and spacing.
+
+---
+
+10. TESTING REQUIREMENTS
+
+After implementation, run relevant tests.
+
+Project Creation
+
+Verify:
+
+- New Project is visible.
+- Project creation works.
+- Project settings are saved.
+- The media picker opens at the correct stage.
+- Cancelling the picker does not delete the project.
+- An empty project can be reopened.
+
+Media Picker
+
+Verify:
+
+- Real videos appear.
+- Real photos appear.
+- Real audio files appear.
+- Albums contain real accessible media.
+- All Media displays the supported collection.
+- Multi-selection works.
+- Selection counts are correct.
+- Importing works.
+- Unsupported files are handled safely.
+- Permission denial does not crash the app.
+- Large collections scroll smoothly.
+
+Homepage
+
+Verify:
+
+- The blue decorative pillar is removed or corrected.
+- The header is compact.
+- New Project is prominent.
+- Recent projects remain accessible.
+- Template cards do not overflow.
+- Portrait and landscape layouts work.
+
+Timeline
+
+Verify:
+
+- Toolbars do not overflow.
+- Tools remain accessible.
+- Timeline zoom works.
+- Playhead timing is correct.
+- Clip selection still works.
+- Existing editing behavior is preserved.
+
+AI Provider Center
+
+Verify:
+
+1. Two or more OpenAI-compatible configurations can be saved.
+2. Each configuration has a different base URL where appropriate.
+3. Each configuration has its own API-key reference.
+4. Switching configurations changes the selected endpoint and credentials.
+5. Provider settings persist after restarting the application.
+6. A failed connection reports the actual error.
+7. A provider can be edited without corrupting another provider.
+8. Deleting a provider does not delete unrelated configurations.
+9. Keys do not appear in logs or project exports.
+10. Manual model entry works when model discovery is unavailable.
+11. Task-specific provider selection respects capabilities.
+
+Regression Testing
+
+Confirm that existing functionality still works:
+
+- Open an existing project
+- Save a project
+- Import media
+- Edit a timeline
+- Preview media
+- Export a video
+- Reopen the project
+- Use the AI Studio
+- Recover from failed operations
+
+Do not disable existing features simply to simplify the new implementation.
+
+---
+
+11. REQUIRED EXECUTION ORDER
+
+Work in the following order.
+
+Priority 1: Project Creation
+
+Implement the New Project button and complete project creation flow.
+
+Priority 2: In-App Media Picker
+
+Implement Videos, Photos, Audio, Albums, and All Media tabs with real device media.
+
+Priority 3: Homepage Header
+
+Remove the unexplained oversized blue element and improve header proportions.
+
+Priority 4: Homepage Layout
+
+Improve action hierarchy, recent projects, quick actions, and templates.
+
+Priority 5: Timeline Responsive Layout
+
+Fix clipped toolbar labels and verify timeline interaction.
+
+Priority 6: AI Provider Center
+
+Implement multiple independent OpenAI-compatible provider configurations and secure key storage.
+
+Priority 7: AI Studio Refinement
+
+Improve provider selection, capability visibility, and configuration workflows.
+
+Priority 8: Regression Testing
+
+Build the application, run tests, and verify the updated workflows.
+
+Do not claim completion before the relevant acceptance tests pass.
+
+---
+
+12. FINAL REPORT
+
+When finished, provide a concise but specific report containing:
+
+1. Files and modules changed
+2. New Project workflow status
+3. Media picker implementation details
+4. Android permission behavior
+5. Homepage layout changes
+6. Timeline overflow fixes
+7. Multiple-provider support details
+8. API-key security implementation
+9. Tests executed and their actual results
+10. Build status
+11. Known limitations
+12. Remaining work
+
+Clearly distinguish implemented features from features that are merely designed or partially implemented.
+
+If the current development environment cannot run Android instrumentation tests or install the application on a real device, state that limitation instead of claiming device verification.
+
+Begin by inspecting the existing KLIPSUP project. Then implement these changes directly in the current codebase, starting with the missing New Project and in-app media selection workflow.

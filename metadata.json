@@ -1,0 +1,6 @@
+{
+  "name": "KLIPSUP",
+  "description": "Professional multitrack non-linear Android video editor with native C++ media DSP/compositing engine, color grading scopes, 3D workspace, and BYOK AI studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

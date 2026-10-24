@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">KLIPSUP</string>
+    <string name="app_tagline">Professional NLE &amp; Motion Workstation</string>
+    <string name="dashboard_new_project">New Project</string>
+    <string name="dashboard_open_project">Open Project</string>
+    <string name="dashboard_recent_projects">Recent Projects</string>
+    <string name="dashboard_templates">Studio Templates</string>
+    <string name="dashboard_import_media">Import Media</string>
+    <string name="dashboard_ai_studio">BYOK AI Studio</string>
+    <string name="dashboard_export_history">Export History</string>
+    <string name="dashboard_diagnostics">System &amp; Diagnostics</string>
+    <string name="workspace_edit">Edit</string>
+    <string name="workspace_color">Color</string>
+    <string name="workspace_audio">Audio</string>
+    <string name="workspace_effects">Effects</string>
+    <string name="workspace_motion">Motion</string>
+    <string name="workspace_3d">3D Scene</string>
+    <string name="workspace_titles">Titles</string>
+    <string name="workspace_subtitles">Subtitles</string>
+    <string name="workspace_ai">AI Studio</string>
+    <string name="workspace_export">Deliver</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_redo">Redo</string>
+    <string name="action_split">Blade Split</string>
+    <string name="action_ripple_delete">Ripple Delete</string>
+    <string name="action_save">Save Project</string>
+    <string name="action_export">Render Video</string>
+</resources>
