@@ -30,12 +30,12 @@ jobs:
         with:
           packages: 'platform-tools'
 
-      - name: Install Android NDK and CMake
+      - name: Install Android Build Tools
         run: |
           sdkmanager --install \
             "platform-tools" \
             "platforms;android-36" \
-            "ndk;27.2.12479018" \
+            "ndk;28.2.13676358" \
             "cmake;3.22.1"
 
       - name: Set up Gradle 9.3.1
@@ -43,10 +43,24 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Verify build tools
+      - name: Generate debug keystore
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Verify build configuration
         run: |
           java -version
           gradle --version
+          test -f debug.keystore
           test -f native/CMakeLists.txt
           test -f native/src/klipsup_engine.cpp
 
