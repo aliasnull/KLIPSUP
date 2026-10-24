@@ -1143,7 +1143,7 @@ private fun NewProjectConfigurationDialog(
                 }
 
                 Text(
-                    "Starting Timeline Mode",
+                    "Initial Workflow",
                     style = MaterialTheme.typography.labelLarge,
                     color = KlipsupTokens.AccentAmber
                 )
@@ -1154,14 +1154,14 @@ private fun NewProjectConfigurationDialog(
                     FilterChip(
                         selected = !populateSampleClips,
                         onClick = { populateSampleClips = false },
-                        label = { Text("Choose Media from Library", fontSize = 11.sp) },
+                        label = { Text("Choose Media from Device Library", fontSize = 11.sp) },
                         modifier = Modifier.testTag("mode_choose_media_chip")
                     )
                     FilterChip(
                         selected = populateSampleClips,
                         onClick = { populateSampleClips = true },
-                        label = { Text("Preload 4K Demo Sequence", fontSize = 11.sp) },
-                        modifier = Modifier.testTag("mode_demo_sequence_chip")
+                        label = { Text("Start with Empty Timeline", fontSize = 11.sp) },
+                        modifier = Modifier.testTag("mode_empty_timeline_chip")
                     )
                 }
 
@@ -1235,8 +1235,8 @@ private fun NewProjectConfigurationDialog(
                             workingColorSpace = selectedColorSpace,
                             audioSampleRate = selectedSampleRate
                         ),
-                        populateSampleClips,
-                        !populateSampleClips // Open In-App Media Picker immediately when creating a clean project
+                        false,
+                        !populateSampleClips // Open In-App Media Picker when Choose Media is selected
                     )
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -1246,7 +1246,7 @@ private fun NewProjectConfigurationDialog(
                 modifier = Modifier.testTag("confirm_create_project_button")
             ) {
                 Text(
-                    text = if (populateSampleClips) "Create Demo Project" else "Create & Choose Media",
+                    text = if (populateSampleClips) "Create Empty Project" else "Create & Choose Media",
                     fontWeight = FontWeight.Bold
                 )
             }

@@ -2,9 +2,17 @@ package alias.klips.net.rendering
 
 import alias.klips.net.core.model.*
 import alias.klips.net.feature.color.CubeLutParser
+import alias.klips.net.feature.media.DeviceMediaScanner
 import alias.klips.net.nativebridge.NativeMediaBridge
 import alias.klips.net.nativebridge.VideoScopesSnapshot
+import android.content.Context
 import android.graphics.*
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Build
+import android.util.LruCache
+import android.util.Size
+import java.io.File
 import kotlin.math.*
 
 data class CompositedFrameResult(
@@ -12,12 +20,15 @@ data class CompositedFrameResult(
     val scopes: VideoScopesSnapshot,
     val activeAudioPeakDb: Float,
     val activeAudioRmsDb: Float,
-    val renderDurationMs: Long
+    val renderDurationMs: Long,
+    val renderedAssetIds: List<String> = emptyList(),
+    val renderedSourceUris: List<String> = emptyList()
 )
 
 object FrameCompositor {
 
     private val lutCache = mutableMapOf<String, alias.klips.net.feature.color.CubeLutData>()
+    private val mediaFrameCache = object : LruCache<String, Bitmap>(48) {}
 
     fun renderFrame(
         project: KlipsupProject,
@@ -25,7 +36,8 @@ object FrameCompositor {
         targetWidth: Int = 640,
         targetHeight: Int = 360,
         computeScopes: Boolean = true,
-        beforeAfterSplitRatio: Float? = null // If non-null (0..1), left side is ungraded/un-effected
+        beforeAfterSplitRatio: Float? = null, // If non-null (0..1), left side is ungraded/un-effected
+        context: Context? = null
     ): CompositedFrameResult {
         val startMs = System.currentTimeMillis()
         val width = (targetWidth / 2 * 2).coerceAtLeast(128)
@@ -38,9 +50,10 @@ object FrameCompositor {
         // Base studio background
         canvas.drawColor(Color.rgb(10, 13, 20))
 
-        // Evaluate tracks in reverse order so Track 1 (or top overlay) composites appropriately
         val visibleTracks = project.tracks.filter { it.isVisible && it.isEnabled }
         var accumulatedAdjustmentGrade: ColorGradeSettings? = null
+        val activeAssetIds = mutableListOf<String>()
+        val activeSourceUris = mutableListOf<String>()
 
         for (track in visibleTracks) {
             if (track.type == TrackType.AUDIO) continue
@@ -51,7 +64,15 @@ object FrameCompositor {
                 continue
             }
 
+            activeClip.mediaAssetId?.let { assetId ->
+                activeAssetIds.add(assetId)
+                project.mediaAssets.firstOrNull { it.id == assetId }?.let { asset ->
+                    activeSourceUris.add(asset.uriString)
+                }
+            }
+
             renderClipOntoCanvas(
+                masterBitmap = masterBitmap,
                 canvas = canvas,
                 paint = paint,
                 project = project,
@@ -59,7 +80,8 @@ object FrameCompositor {
                 clip = activeClip,
                 timeUs = timeUs,
                 width = width,
-                height = height
+                height = height,
+                context = context
             )
         }
 
@@ -134,11 +156,14 @@ object FrameCompositor {
             scopes = scopes,
             activeAudioPeakDb = peakDb,
             activeAudioRmsDb = rmsDb,
-            renderDurationMs = elapsed
+            renderDurationMs = elapsed,
+            renderedAssetIds = activeAssetIds,
+            renderedSourceUris = activeSourceUris
         )
     }
 
     private fun renderClipOntoCanvas(
+        masterBitmap: Bitmap,
         canvas: Canvas,
         paint: Paint,
         project: KlipsupProject,
@@ -146,7 +171,8 @@ object FrameCompositor {
         clip: TimelineClip,
         timeUs: Long,
         width: Int,
-        height: Int
+        height: Int,
+        context: Context?
     ) {
         val evaluatedTransform = KeyframeEvaluator.evaluateClipTransformAt(clip, timeUs)
         val localTimeUs = if (clip.isFreezeFrame) {
@@ -221,6 +247,10 @@ object FrameCompositor {
         val combinedAlpha = (evaluatedTransform.opacity * transitionAlpha * 255f).toInt().coerceIn(0, 255)
         paint.alpha = combinedAlpha
 
+        val linkedAsset = clip.mediaAssetId?.let { id ->
+            project.mediaAssets.firstOrNull { it.id == id }
+        }
+
         when {
             clip.scene3DNode != null || track.type == TrackType.SCENE_3D -> {
                 draw3DSceneNode(
@@ -244,6 +274,35 @@ object FrameCompositor {
                     alpha = combinedAlpha
                 )
             }
+            linkedAsset != null -> {
+                val decodedBitmap = decodeAssetFrameBitmap(
+                    context = context,
+                    asset = linkedAsset,
+                    localTimeUs = localTimeUs,
+                    targetWidth = width,
+                    targetHeight = height
+                )
+                if (decodedBitmap != null) {
+                    drawBitmapLetterboxed(
+                        masterBitmap = masterBitmap,
+                        canvas = canvas,
+                        paint = paint,
+                        bitmap = decodedBitmap,
+                        canvasWidth = width,
+                        canvasHeight = height
+                    )
+                } else {
+                    drawVerifiedAssetFrameSlate(
+                        canvas = canvas,
+                        paint = paint,
+                        asset = linkedAsset,
+                        clip = clip,
+                        localTimeUs = localTimeUs,
+                        width = width,
+                        height = height
+                    )
+                }
+            }
             else -> {
                 drawProceduralFootageFrame(
                     canvas = canvas,
@@ -257,6 +316,198 @@ object FrameCompositor {
         }
 
         canvas.restore()
+    }
+
+    /**
+     * Decodes the actual frame from a [MediaAsset] (preferring the verified project-managed copy
+     * in [MediaAsset.proxyUriString] and falling back to [MediaAsset.uriString]).
+     */
+    private fun decodeAssetFrameBitmap(
+        context: Context?,
+        asset: MediaAsset,
+        localTimeUs: Long,
+        targetWidth: Int,
+        targetHeight: Int
+    ): Bitmap? {
+        if (asset.isMissing) return null
+        val candidateUris = listOfNotNull(
+            asset.proxyUriString?.takeIf { it.isNotBlank() },
+            asset.uriString.takeIf { it.isNotBlank() }
+        ).filterNot { it.startsWith("procedural://") }
+
+        if (candidateUris.isEmpty()) return null
+
+        val timeBucket = if (asset.mediaType == MediaType.IMAGE) 0L else (localTimeUs / 80_000L)
+        val cacheKey = "${asset.id}_${candidateUris.first()}_${timeBucket}_${targetWidth}x${targetHeight}"
+        synchronized(mediaFrameCache) {
+            mediaFrameCache.get(cacheKey)?.let { if (!it.isRecycled) return it }
+        }
+
+        for (uriStr in candidateUris) {
+            val uri = runCatching { Uri.parse(uriStr) }.getOrNull() ?: continue
+            val decoded = when (asset.mediaType) {
+                MediaType.IMAGE -> {
+                    DeviceMediaScanner.decodeSampledBitmapFromUri(context, uri, targetWidth, targetHeight)
+                }
+                MediaType.VIDEO -> {
+                    decodeVideoFrameAt(context, uri, uriStr, localTimeUs, targetWidth, targetHeight)
+                }
+                else -> null
+            }
+            if (decoded != null) {
+                synchronized(mediaFrameCache) {
+                    mediaFrameCache.put(cacheKey, decoded)
+                }
+                return decoded
+            }
+        }
+        return null
+    }
+
+    private fun decodeVideoFrameAt(
+        context: Context?,
+        uri: Uri,
+        uriStr: String,
+        localTimeUs: Long,
+        targetWidth: Int,
+        targetHeight: Int
+    ): Bitmap? {
+        val retriever = MediaMetadataRetriever()
+        try {
+            if (uri.scheme == "file" || uri.scheme.isNullOrBlank()) {
+                val file = File(uri.path ?: uriStr.removePrefix("file://"))
+                if (file.exists() && file.canRead()) {
+                    retriever.setDataSource(file.absolutePath)
+                } else {
+                    return null
+                }
+            } else if (uri.scheme == "content" && context != null) {
+                retriever.setDataSource(context, uri)
+            } else {
+                return null
+            }
+
+            val frame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                retriever.getScaledFrameAtTime(
+                    localTimeUs.coerceAtLeast(0L),
+                    MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                    targetWidth.coerceAtLeast(128),
+                    targetHeight.coerceAtLeast(128)
+                ) ?: retriever.getFrameAtTime(localTimeUs.coerceAtLeast(0L), MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+            } else {
+                retriever.getFrameAtTime(localTimeUs.coerceAtLeast(0L), MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+            }
+            if (frame != null) return frame
+        } catch (_: Throwable) {
+            // Fall through to ContentResolver.loadThumbnail or BitmapFactory fallback
+        } finally {
+            runCatching { retriever.release() }
+        }
+
+        if (uri.scheme == "content" && context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val thumb = runCatching {
+                context.contentResolver.loadThumbnail(
+                    uri,
+                    Size(targetWidth.coerceAtLeast(128), targetHeight.coerceAtLeast(128)),
+                    null
+                )
+            }.getOrNull()
+            if (thumb != null) return thumb
+        }
+
+        return DeviceMediaScanner.decodeSampledBitmapFromUri(context, uri, targetWidth, targetHeight)
+    }
+
+    private fun drawBitmapLetterboxed(
+        masterBitmap: Bitmap,
+        canvas: Canvas,
+        paint: Paint,
+        bitmap: Bitmap,
+        canvasWidth: Int,
+        canvasHeight: Int
+    ) {
+        if (bitmap.width <= 0 || bitmap.height <= 0) return
+        val scale = min(
+            canvasWidth.toFloat() / bitmap.width.toFloat(),
+            canvasHeight.toFloat() / bitmap.height.toFloat()
+        )
+        val drawW = bitmap.width * scale
+        val drawH = bitmap.height * scale
+        val left = (canvasWidth - drawW) * 0.5f
+        val top = (canvasHeight - drawH) * 0.5f
+        val dstRect = RectF(left, top, left + drawW, top + drawH)
+        canvas.drawBitmap(bitmap, null, dstRect, paint)
+
+        // Fallback rasterization when running under a headless JVM / ShadowCanvas where
+        // Canvas.drawBitmap does not blit into the backing Bitmap buffer.
+        val midX = (canvasWidth / 2).coerceIn(0, canvasWidth - 1)
+        val midY = (canvasHeight / 2).coerceIn(0, canvasHeight - 1)
+        if (masterBitmap.getPixel(midX, midY) == 0 && bitmap.getPixel(bitmap.width / 2, bitmap.height / 2) != 0) {
+            val startX = left.toInt().coerceIn(0, canvasWidth - 1)
+            val endX = (left + drawW).toInt().coerceIn(startX + 1, canvasWidth)
+            val startY = top.toInt().coerceIn(0, canvasHeight - 1)
+            val endY = (top + drawH).toInt().coerceIn(startY + 1, canvasHeight)
+            val dstW = (endX - startX).coerceAtLeast(1)
+            val dstH = (endY - startY).coerceAtLeast(1)
+            for (y in startY until endY) {
+                val srcY = (((y - startY) * bitmap.height) / dstH).coerceIn(0, bitmap.height - 1)
+                for (x in startX until endX) {
+                    val srcX = (((x - startX) * bitmap.width) / dstW).coerceIn(0, bitmap.width - 1)
+                    masterBitmap.setPixel(x, y, bitmap.getPixel(srcX, srcY))
+                }
+            }
+        }
+    }
+
+    private fun drawVerifiedAssetFrameSlate(
+        canvas: Canvas,
+        paint: Paint,
+        asset: MediaAsset,
+        clip: TimelineClip,
+        localTimeUs: Long,
+        width: Int,
+        height: Int
+    ) {
+        val hashColor = asset.uriString.hashCode()
+        val r0 = ((hashColor ushr 16) and 0x7F) + 40
+        val g0 = ((hashColor ushr 8) and 0x7F) + 50
+        val b0 = (hashColor and 0x7F) + 70
+
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = LinearGradient(
+                0f, 0f, width.toFloat(), height.toFloat(),
+                Color.rgb(r0, g0, b0),
+                Color.rgb(18, 26, 38),
+                Shader.TileMode.CLAMP
+            )
+            alpha = paint.alpha
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+
+        val scale = width / 640f
+        val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = if (asset.isMissing) Color.rgb(248, 113, 113) else Color.WHITE
+            alpha = paint.alpha
+            textSize = (18f * scale).coerceAtLeast(12f)
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        }
+        val subPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.rgb(186, 230, 253)
+            alpha = paint.alpha
+            textSize = (12f * scale).coerceAtLeast(10f)
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
+        }
+
+        val statusLabel = if (asset.isMissing) "MEDIA OFFLINE: ${asset.name}" else asset.name
+        canvas.drawText(statusLabel, width * 0.5f, height * 0.45f, titlePaint)
+        canvas.drawText(
+            "${asset.width}x${asset.height} • ${String.format("%.2fs", localTimeUs / 1_000_000.0)} • ${clip.label}",
+            width * 0.5f,
+            height * 0.56f,
+            subPaint
+        )
     }
 
     private fun drawProceduralFootageFrame(

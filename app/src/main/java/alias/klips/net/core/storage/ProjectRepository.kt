@@ -15,7 +15,7 @@ data class StudioTemplate(
     val title: String,
     val subtitle: String,
     val settings: ProjectSettings,
-    val populateDemoTimeline: Boolean = true
+    val populateDemoTimeline: Boolean = false
 )
 
 class ProjectRepository(
@@ -25,6 +25,13 @@ class ProjectRepository(
     val allProjectsFlow: Flow<List<ProjectEntity>> = dao.observeAllProjects()
     val exportHistoryFlow: Flow<List<ExportHistoryEntity>> = dao.observeExportHistory()
     val diagnosticLogsFlow: Flow<List<DiagnosticLogEntity>> = dao.observeDiagnosticLogs()
+
+    fun getProjectMediaDir(projectId: String): File {
+        val safeId = projectId.replace(Regex("[^A-Za-z0-9._-]"), "_").ifBlank { "default_project" }
+        return File(File(workspaceDir, "project_media"), safeId).apply {
+            if (!exists()) mkdirs()
+        }
+    }
 
     val studioTemplates = listOf(
         StudioTemplate(
@@ -37,7 +44,8 @@ class ProjectRepository(
                 aspectRatio = AspectRatioPreset.RATIO_16_9,
                 fps = RationalFps.FPS_60,
                 workingColorSpace = ColorSpaceMode.REC_709
-            )
+            ),
+            populateDemoTimeline = false
         ),
         StudioTemplate(
             id = "tpl_shorts_reels",
@@ -49,7 +57,8 @@ class ProjectRepository(
                 aspectRatio = AspectRatioPreset.RATIO_9_16,
                 fps = RationalFps.FPS_30,
                 workingColorSpace = ColorSpaceMode.REC_709
-            )
+            ),
+            populateDemoTimeline = false
         ),
         StudioTemplate(
             id = "tpl_square_social",
@@ -61,7 +70,8 @@ class ProjectRepository(
                 aspectRatio = AspectRatioPreset.RATIO_1_1,
                 fps = RationalFps.FPS_30,
                 workingColorSpace = ColorSpaceMode.SRGB
-            )
+            ),
+            populateDemoTimeline = false
         ),
         StudioTemplate(
             id = "tpl_cinematic_widescreen",
@@ -73,7 +83,8 @@ class ProjectRepository(
                 aspectRatio = AspectRatioPreset.RATIO_239_1,
                 fps = RationalFps.FPS_24,
                 workingColorSpace = ColorSpaceMode.ACES_CG
-            )
+            ),
+            populateDemoTimeline = false
         ),
         StudioTemplate(
             id = "tpl_custom_project",
@@ -94,14 +105,33 @@ class ProjectRepository(
         val existing = dao.getAllProjectsOnce()
         if (existing.isNotEmpty()) {
             val latest = existing.first()
-            return runCatching {
+            val parsed = runCatching {
                 ProjectSerializer.fromJsonString(latest.serializedJson)
-            }.getOrElse { createDefaultShowreelProject() }
+            }.getOrNull()
+
+            if (parsed != null) {
+                val hasOnlyProceduralDummyMedia = parsed.mediaAssets.isNotEmpty() &&
+                    parsed.mediaAssets.all { it.uriString.startsWith("procedural://") }
+                if (parsed.id == "proj_klipsup_showreel" && hasOnlyProceduralDummyMedia) {
+                    val cleanReplacement = createEmptyMultitrackProject(
+                        customId = "proj_klipsup_workspace",
+                        customName = "Untitled Project",
+                        customSettings = parsed.settings
+                    )
+                    dao.deleteProjectById(parsed.id)
+                    saveProject(cleanReplacement, isAutosave = false)
+                    return cleanReplacement
+                }
+                return ProjectSerializer.detectMissingMedia(parsed)
+            }
         }
-        val showreel = createDefaultShowreelProject()
-        saveProject(showreel, isAutosave = false)
-        logDiagnostic("STARTUP", "INFO", "Initialized KLIPSUP studio workspace & default multitrack showreel project.")
-        return showreel
+        val cleanDefault = createEmptyMultitrackProject(
+            customId = "proj_klipsup_workspace",
+            customName = "Untitled Project"
+        )
+        saveProject(cleanDefault, isAutosave = false)
+        logDiagnostic("STARTUP", "INFO", "Initialized KLIPSUP studio workspace with clean multitrack project.")
+        return cleanDefault
     }
 
     suspend fun saveProject(project: KlipsupProject, isAutosave: Boolean = false) {
@@ -146,19 +176,11 @@ class ProjectRepository(
     ): KlipsupProject {
         val customId = "proj_${UUID.randomUUID().toString().replace("-", "").take(8)}"
         val cleanName = name.trim().ifBlank { "Untitled Project" }
-        val created = if (populateSampleClips) {
-            createDefaultShowreelProject(
-                customId = customId,
-                customName = cleanName,
-                customSettings = settings
-            )
-        } else {
-            createEmptyMultitrackProject(
-                customId = customId,
-                customName = cleanName,
-                customSettings = settings
-            )
-        }
+        val created = createEmptyMultitrackProject(
+            customId = customId,
+            customName = cleanName,
+            customSettings = settings
+        )
         saveProject(created, isAutosave = false)
         logDiagnostic(
             "PROJECT",
@@ -199,6 +221,8 @@ class ProjectRepository(
         dao.deleteProjectById(projectId)
         val projectFile = File(File(workspaceDir, "projects"), "$projectId.klips.json")
         if (projectFile.exists()) projectFile.delete()
+        val mediaDir = File(File(workspaceDir, "project_media"), projectId)
+        if (mediaDir.exists()) mediaDir.deleteRecursively()
         logDiagnostic("PROJECT", "INFO", "Deleted project ID $projectId")
     }
 

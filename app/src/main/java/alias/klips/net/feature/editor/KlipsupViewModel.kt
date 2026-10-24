@@ -7,6 +7,7 @@ import alias.klips.net.core.database.ProjectEntity
 import alias.klips.net.core.model.*
 import alias.klips.net.core.security.CredentialVault
 import alias.klips.net.core.storage.ProjectRepository
+import alias.klips.net.feature.media.DeviceMediaScanner
 import alias.klips.net.feature.media.LocalMediaItem
 import alias.klips.net.feature.media.MediaPickerContextAction
 import alias.klips.net.feature.media.TimelineInsertionMode
@@ -49,10 +50,12 @@ data class EditorUiState(
     ),
     val activeWorkspace: EditorWorkspace = EditorWorkspace.EDIT,
     val activeToolMode: EditingToolMode = EditingToolMode.SELECT,
-    val selectedClipId: String? = "clip_v1_a",
+    val selectedClipId: String? = null,
     val selectedTrackId: String? = "trk_v1",
-    val playheadUs: Long = 1_200_000L,
+    val playheadUs: Long = 0L,
     val isPlaying: Boolean = false,
+    val isImportingMedia: Boolean = false,
+    val mediaImportError: String? = null,
     val timelineZoomPxPerSec: Float = 84f,
     val snappingEnabled: Boolean = true,
     val showSafeAreaGuides: Boolean = true,
@@ -191,19 +194,11 @@ class KlipsupViewModel(
     ) {
         val customId = "proj_${UUID.randomUUID().toString().replace("-", "").take(8)}"
         val cleanName = name.trim().ifBlank { "Untitled Project" }
-        val created = if (populateSampleClips) {
-            repository.createDefaultShowreelProject(
-                customId = customId,
-                customName = cleanName,
-                customSettings = settings
-            )
-        } else {
-            repository.createEmptyMultitrackProject(
-                customId = customId,
-                customName = cleanName,
-                customSettings = settings
-            )
-        }
+        val created = repository.createEmptyMultitrackProject(
+            customId = customId,
+            customName = cleanName,
+            customSettings = settings
+        )
         undoRedoManager.clear()
         val targetDest = if (openMediaPickerAfterCreate) {
             TopAppDestination.MEDIA_PICKER
@@ -215,9 +210,11 @@ class KlipsupViewModel(
                 destination = targetDest,
                 activeMediaPickerAction = MediaPickerContextAction.NEW_PROJECT,
                 activeProject = created,
-                selectedClipId = created.tracks.flatMap { t -> t.clips }.firstOrNull()?.id,
+                selectedClipId = null,
                 selectedTrackId = created.tracks.firstOrNull()?.id,
                 playheadUs = 0L,
+                isImportingMedia = false,
+                mediaImportError = null,
                 canUndo = false,
                 canRedo = false,
                 undoCount = 0,
@@ -245,9 +242,13 @@ class KlipsupViewModel(
         createNewProject(
             name = name,
             settings = settings,
-            populateSampleClips = true,
-            openMediaPickerAfterCreate = false
+            populateSampleClips = false,
+            openMediaPickerAfterCreate = true
         )
+    }
+
+    fun clearMediaImportError() {
+        _uiState.update { it.copy(mediaImportError = null) }
     }
 
     fun openInAppMediaPicker(contextAction: MediaPickerContextAction = MediaPickerContextAction.IMPORT_MEDIA) {
@@ -255,7 +256,8 @@ class KlipsupViewModel(
         _uiState.update {
             it.copy(
                 destination = TopAppDestination.MEDIA_PICKER,
-                activeMediaPickerAction = contextAction
+                activeMediaPickerAction = contextAction,
+                mediaImportError = null
             )
         }
     }
@@ -265,6 +267,8 @@ class KlipsupViewModel(
         _uiState.update {
             it.copy(
                 destination = TopAppDestination.EDITOR_WORKSTATION,
+                isImportingMedia = false,
+                mediaImportError = null,
                 statusBannerMessage = "Project '${it.activeProject.name}' ready in editor"
             )
         }
@@ -279,41 +283,113 @@ class KlipsupViewModel(
             cancelMediaPicker()
             return
         }
-        val contextAction = _uiState.value.activeMediaPickerAction
-        val currentPlayhead = _uiState.value.playheadUs
+        val stateSnapshot = _uiState.value
+        val currentProject = stateSnapshot.activeProject
+        val contextAction = stateSnapshot.activeMediaPickerAction
+        val currentPlayhead = stateSnapshot.playheadUs
+        val currentSelectedClipId = stateSnapshot.selectedClipId
+        val projectMediaDir = repository.getProjectMediaDir(currentProject.id)
 
-        commitProjectMutation("Add ${selectedItems.size} Media Item(s) (${insertionMode.label})") { proj ->
-            addLocalMediaItemsToProject(
-                project = proj,
-                selectedItems = selectedItems,
-                insertionMode = insertionMode,
-                contextAction = contextAction,
-                playheadUs = currentPlayhead,
-                selectedClipId = _uiState.value.selectedClipId
+        _uiState.update { it.copy(isImportingMedia = true, mediaImportError = null) }
+
+        val validatedPairs = mutableListOf<Pair<LocalMediaItem, MediaAsset>>()
+        val importErrors = mutableListOf<String>()
+
+        for (item in selectedItems) {
+            val result = DeviceMediaScanner.validateAndImportMediaItem(
+                context = appContext,
+                item = item,
+                projectManagedDir = projectMediaDir
+            )
+            result.fold(
+                onSuccess = { asset ->
+                    validatedPairs.add(item to asset)
+                },
+                onFailure = { err ->
+                    val errMsg = err.message ?: "Failed to import '${item.name}'"
+                    importErrors.add(errMsg)
+                }
             )
         }
 
-        val latestClips = _uiState.value.activeProject.tracks.flatMap { it.clips }
+        if (validatedPairs.isEmpty()) {
+            val primaryError = importErrors.firstOrNull()
+                ?: "Selected media could not be read or imported."
+            _uiState.update {
+                it.copy(
+                    isImportingMedia = false,
+                    mediaImportError = primaryError,
+                    statusBannerMessage = "Import failed: $primaryError"
+                )
+            }
+            viewModelScope.launch(Dispatchers.IO) {
+                repository.logDiagnostic("MEDIA_IMPORT", "ERROR", primaryError)
+            }
+            return
+        }
+
+        var firstCreatedClipId: String? = null
+        var firstCreatedClipStartUs: Long? = null
+
+        commitProjectMutation("Add ${validatedPairs.size} Media Item(s) (${insertionMode.label})") { proj ->
+            val outcome = addValidatedMediaAssetsToProject(
+                project = proj,
+                validatedItems = validatedPairs,
+                insertionMode = insertionMode,
+                contextAction = contextAction,
+                playheadUs = currentPlayhead,
+                selectedClipId = currentSelectedClipId
+            )
+            firstCreatedClipId = outcome.firstCreatedClipId
+            firstCreatedClipStartUs = outcome.firstCreatedClipStartUs
+            outcome.updatedProject
+        }
+
+        val partialError = importErrors.firstOrNull()
+        val bannerMsg = if (partialError == null) {
+            "Imported ${validatedPairs.size} item(s) via ${insertionMode.label}"
+        } else {
+            "Imported ${validatedPairs.size} item(s); ${importErrors.size} failed: $partialError"
+        }
+
         _uiState.update {
             it.copy(
                 destination = TopAppDestination.EDITOR_WORKSTATION,
-                selectedClipId = it.selectedClipId ?: latestClips.lastOrNull()?.id,
-                statusBannerMessage = "Imported ${selectedItems.size} item(s) via ${insertionMode.label}"
+                isImportingMedia = false,
+                mediaImportError = partialError,
+                selectedClipId = firstCreatedClipId ?: it.selectedClipId,
+                playheadUs = firstCreatedClipStartUs ?: it.playheadUs,
+                statusBannerMessage = bannerMsg
+            )
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.logDiagnostic(
+                "MEDIA_IMPORT",
+                if (partialError == null) "INFO" else "WARN",
+                bannerMsg
             )
         }
         refreshPreviewFrame()
     }
 
-    private fun addLocalMediaItemsToProject(
+    private data class MediaInsertionOutcome(
+        val updatedProject: KlipsupProject,
+        val firstCreatedClipId: String?,
+        val firstCreatedClipStartUs: Long?
+    )
+
+    private fun addValidatedMediaAssetsToProject(
         project: KlipsupProject,
-        selectedItems: List<LocalMediaItem>,
+        validatedItems: List<Pair<LocalMediaItem, MediaAsset>>,
         insertionMode: TimelineInsertionMode,
         contextAction: MediaPickerContextAction,
         playheadUs: Long,
         selectedClipId: String?
-    ): KlipsupProject {
+    ): MediaInsertionOutcome {
         val newAssets = mutableListOf<MediaAsset>()
         var updatedTracks = project.tracks
+        var firstClipId: String? = null
+        var firstClipStartUs: Long? = null
 
         // Ensure target tracks exist
         if (updatedTracks.none { it.type == TrackType.VIDEO }) {
@@ -338,25 +414,33 @@ class KlipsupViewModel(
 
         // Handle Replace Clip Media action
         if (contextAction == MediaPickerContextAction.REPLACE_CLIP_MEDIA && selectedClipId != null) {
-            val replacement = selectedItems.first()
-            val asset = replacement.toMediaAsset()
+            val (replacementItem, asset) = validatedItems.first()
             newAssets.add(asset)
+            val clipDurationUs = asset.durationUs.coerceAtLeast(1_000_000L)
             updatedTracks = updatedTracks.map { trk ->
                 trk.copy(
                     clips = trk.clips.map { clip ->
                         if (clip.id == selectedClipId) {
+                            firstClipId = clip.id
+                            firstClipStartUs = clip.startTimeUs
                             clip.copy(
                                 mediaAssetId = asset.id,
-                                label = replacement.name,
-                                durationUs = (replacement.durationMs * 1000L).coerceAtLeast(1_000_000L)
+                                label = asset.name.ifBlank { replacementItem.name },
+                                durationUs = clipDurationUs,
+                                sourceInUs = 0L,
+                                sourceOutUs = clipDurationUs
                             )
                         } else clip
                     }
                 )
             }
-            return project.copy(
-                mediaAssets = project.mediaAssets + newAssets,
-                tracks = updatedTracks
+            return MediaInsertionOutcome(
+                updatedProject = project.copy(
+                    mediaAssets = project.mediaAssets + newAssets,
+                    tracks = updatedTracks
+                ),
+                firstCreatedClipId = firstClipId,
+                firstCreatedClipStartUs = firstClipStartUs
             )
         }
 
@@ -375,14 +459,13 @@ class KlipsupViewModel(
                 .maxOfOrNull { it.endTimeUs } ?: 0L
         }
 
-        selectedItems.forEach { item ->
-            val asset = item.toMediaAsset()
+        validatedItems.forEach { (item, asset) ->
             newAssets.add(asset)
 
             if (insertionMode != TimelineInsertionMode.ADD_TO_MEDIA_BIN_ONLY) {
-                val clipDurationUs = (item.durationMs * 1000L).coerceAtLeast(1_000_000L)
+                val clipDurationUs = asset.durationUs.coerceAtLeast(1_000_000L)
                 val targetTrackType = when {
-                    item.type == MediaType.AUDIO || contextAction == MediaPickerContextAction.ADD_AUDIO -> TrackType.AUDIO
+                    asset.mediaType == MediaType.AUDIO || contextAction == MediaPickerContextAction.ADD_AUDIO -> TrackType.AUDIO
                     insertionMode == TimelineInsertionMode.ADD_AS_PIP_OVERLAY ||
                         contextAction == MediaPickerContextAction.ADD_OVERLAY -> TrackType.OVERLAY
                     else -> TrackType.VIDEO
@@ -401,13 +484,20 @@ class KlipsupViewModel(
                 val newClip = TimelineClip(
                     id = "clip_${UUID.randomUUID().toString().replace("-", "").take(8)}",
                     mediaAssetId = asset.id,
-                    label = item.name,
+                    label = asset.name.ifBlank { item.name },
                     trackId = targetTrack.id,
                     startTimeUs = startUs,
                     durationUs = clipDurationUs,
+                    sourceInUs = 0L,
+                    sourceOutUs = clipDurationUs,
                     transform = defaultTransform,
                     badgeColorHex = targetTrack.colorHex
                 )
+
+                if (firstClipId == null) {
+                    firstClipId = newClip.id
+                    firstClipStartUs = newClip.startTimeUs
+                }
 
                 updatedTracks = updatedTracks.map { trk ->
                     if (trk.id == targetTrack.id) {
@@ -423,9 +513,13 @@ class KlipsupViewModel(
             }
         }
 
-        return project.copy(
-            mediaAssets = project.mediaAssets + newAssets,
-            tracks = updatedTracks
+        return MediaInsertionOutcome(
+            updatedProject = project.copy(
+                mediaAssets = project.mediaAssets + newAssets,
+                tracks = updatedTracks
+            ),
+            firstCreatedClipId = firstClipId,
+            firstCreatedClipStartUs = firstClipStartUs
         )
     }
 
@@ -862,44 +956,32 @@ class KlipsupViewModel(
         }
     }
 
-    fun importExternalMediaUri(uri: Uri, mediaType: MediaType) {
-        val name = uri.lastPathSegment?.substringAfterLast('/') ?: "Imported_${mediaType.label}_${System.currentTimeMillis() % 1000}"
-        val newAsset = MediaAsset(
-            id = "asset_${UUID.randomUUID().toString().take(8)}",
-            name = name,
-            uriString = uri.toString(),
-            mediaType = mediaType,
-            durationUs = 5_000_000L,
-            binFolder = "Imported Media",
-            tags = listOf("SAF Import", mediaType.label)
+    fun importExternalMediaUri(uri: Uri, mediaType: MediaType = MediaType.VIDEO) {
+        val inspectedResult = DeviceMediaScanner.inspectUriMetadata(
+            context = appContext,
+            uri = uri
         )
-        commitProjectMutation("Import Media '$name'") { proj ->
-            val targetTrack = proj.tracks.firstOrNull {
-                (mediaType == MediaType.AUDIO && it.type == TrackType.AUDIO) ||
-                    (mediaType != MediaType.AUDIO && it.type == TrackType.VIDEO)
-            }
-            val updatedTracks = if (targetTrack != null) {
-                val tailUs = targetTrack.clips.maxOfOrNull { it.endTimeUs } ?: 0L
-                val newClip = TimelineClip(
-                    id = "clip_${UUID.randomUUID().toString().take(8)}",
-                    mediaAssetId = newAsset.id,
-                    label = name,
-                    trackId = targetTrack.id,
-                    startTimeUs = tailUs,
-                    durationUs = 5_000_000L,
-                    badgeColorHex = targetTrack.colorHex
+        inspectedResult.fold(
+            onSuccess = { inspected ->
+                confirmMediaPickerSelection(
+                    selectedItems = listOf(inspected),
+                    insertionMode = TimelineInsertionMode.APPEND_TO_TIMELINE
                 )
-                proj.tracks.map { if (it.id == targetTrack.id) it.copy(clips = it.clips + newClip) else it }
-            } else proj.tracks
-
-            proj.copy(
-                mediaAssets = proj.mediaAssets + newAsset,
-                tracks = updatedTracks
-            )
-        }
-        if (_uiState.value.destination == TopAppDestination.MEDIA_PICKER) {
-            _uiState.update { it.copy(destination = TopAppDestination.EDITOR_WORKSTATION) }
-        }
+            },
+            onFailure = { err ->
+                val errMsg = err.message ?: "Cannot import URI '$uri': media source is unreadable or invalid."
+                _uiState.update {
+                    it.copy(
+                        isImportingMedia = false,
+                        mediaImportError = errMsg,
+                        statusBannerMessage = "Import failed: $errMsg"
+                    )
+                }
+                viewModelScope.launch(Dispatchers.IO) {
+                    repository.logDiagnostic("MEDIA_IMPORT", "ERROR", errMsg)
+                }
+            }
+        )
     }
 
     // --- BYOK AI Provider Management & Multi-Provider Workflows ---
@@ -1309,7 +1391,8 @@ class KlipsupViewModel(
                 targetWidth = targetW,
                 targetHeight = targetH,
                 computeScopes = true,
-                beforeAfterSplitRatio = if (state.beforeAfterCompareEnabled) state.beforeAfterSplitFraction else null
+                beforeAfterSplitRatio = if (state.beforeAfterCompareEnabled) state.beforeAfterSplitFraction else null,
+                context = appContext
             )
             withContext(Dispatchers.Main) {
                 _uiState.update {

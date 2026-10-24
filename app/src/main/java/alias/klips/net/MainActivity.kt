@@ -1,7 +1,6 @@
 package alias.klips.net
 
 import alias.klips.net.core.designsystem.KlipsupTheme
-import alias.klips.net.core.model.MediaType
 import alias.klips.net.feature.editor.EditorWorkstationScreen
 import alias.klips.net.feature.editor.KlipsupViewModel
 import alias.klips.net.feature.editor.TopAppDestination
@@ -10,11 +9,8 @@ import alias.klips.net.feature.media.InAppMediaPickerScreen
 import alias.klips.net.feature.media.MediaPickerContextAction
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,21 +41,6 @@ class MainActivity : ComponentActivity() {
                 val savedProjects by klipsupViewModel.savedProjects.collectAsStateWithLifecycle()
                 val exportHistory by klipsupViewModel.exportHistory.collectAsStateWithLifecycle()
                 val diagnosticLogs by klipsupViewModel.diagnosticLogs.collectAsStateWithLifecycle()
-
-                // Secondary zero-permission system Photo Picker fallback inside the In-App Media Picker
-                val systemMediaPickerLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.PickVisualMedia()
-                ) { uri ->
-                    if (uri != null) {
-                        klipsupViewModel.importExternalMediaUri(uri, MediaType.VIDEO)
-                    }
-                }
-
-                val launchSystemMediaFallback = {
-                    systemMediaPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
-                    )
-                }
 
                 when (uiState.destination) {
                     TopAppDestination.HOME_DASHBOARD -> {
@@ -93,9 +74,11 @@ class MainActivity : ComponentActivity() {
                         InAppMediaPickerScreen(
                             contextAction = uiState.activeMediaPickerAction,
                             activeProjectName = uiState.activeProject.name,
+                            isImporting = uiState.isImportingMedia,
+                            importErrorMessage = uiState.mediaImportError,
+                            onDismissError = klipsupViewModel::clearMediaImportError,
                             onConfirmSelection = klipsupViewModel::confirmMediaPickerSelection,
-                            onCancel = klipsupViewModel::cancelMediaPicker,
-                            onLaunchExternalSafFallback = launchSystemMediaFallback
+                            onCancel = klipsupViewModel::cancelMediaPicker
                         )
                     }
 

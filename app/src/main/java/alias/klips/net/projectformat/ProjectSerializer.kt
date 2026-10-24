@@ -603,14 +603,31 @@ object ProjectSerializer {
         )
     }
 
-    fun detectMissingMedia(project: KlipsupProject): KlipsupProject {
+    fun detectMissingMedia(project: KlipsupProject, context: android.content.Context? = null): KlipsupProject {
         val updatedAssets = project.mediaAssets.map { asset ->
-            if (asset.uriString.startsWith("procedural://") || asset.uriString.startsWith("content://")) {
-                asset.copy(isMissing = false)
-            } else {
-                val file = File(asset.uriString.removePrefix("file://"))
-                asset.copy(isMissing = !file.exists())
+            val proxyPath = asset.proxyUriString?.removePrefix("file://")?.takeIf { it.isNotBlank() }
+            val proxyExists = proxyPath != null && File(proxyPath).let { it.exists() && it.length() > 0L }
+
+            val missing = when {
+                proxyExists -> false
+                asset.uriString.isBlank() -> true
+                asset.uriString.startsWith("procedural://") -> false
+                asset.uriString.startsWith("content://") -> {
+                    if (context != null) {
+                        val readable = runCatching {
+                            context.contentResolver.openInputStream(android.net.Uri.parse(asset.uriString))?.use { true } ?: false
+                        }.getOrDefault(false)
+                        !readable
+                    } else {
+                        false
+                    }
+                }
+                else -> {
+                    val file = File(asset.uriString.removePrefix("file://"))
+                    !(file.exists() && file.length() > 0L)
+                }
             }
+            asset.copy(isMissing = missing)
         }
         return project.copy(mediaAssets = updatedAssets)
     }
